@@ -164,24 +164,35 @@ export default function KitchenDashboard() {
     if (packedKeys.length > 0 || driverPacked > 0) {
       text += `\n*PACKED BREAKFASTS*\n`;
       
-      // Group by room for packed breakfasts
-      const roomsWithPacked = ROOM_NUMBERS.filter(room => {
-        const roomOrders = orders.filter(o => o.roomNumber === room);
-        return roomOrders.some(o => o.isPackedBreakfast) || (roomOrders[0]?.driverPackedBreakfasts && roomOrders[0].driverPackedBreakfasts > 0);
-      });
+      // Group packed breakfasts by Room + Time
+      const packedGroups = orders.reduce((acc, order) => {
+        if (!order.isPackedBreakfast && !(order.driverPackedBreakfasts && order.driverPackedBreakfasts > 0)) {
+          return acc;
+        }
+        const timeStr = order.breakfastTime ? new Date(order.breakfastTime).toLocaleString([], { timeStyle: 'short' }) : 'Time not specified';
+        const key = `${order.roomNumber}|${timeStr}`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(order);
+        return acc;
+      }, {} as Record<string, Order[]>);
 
-      roomsWithPacked.forEach(room => {
-        const roomOrders = orders.filter(o => o.roomNumber === room);
-        const timeFormatted = roomOrders[0]?.breakfastTime 
-          ? new Date(roomOrders[0].breakfastTime).toLocaleString([], { timeStyle: 'short' }) 
-          : 'Time not specified';
-          
-        text += `\n*Room ${room}, ${timeFormatted}*\n`;
+      Object.keys(packedGroups).sort().forEach(key => {
+        const [room, timeStr] = key.split('|');
+        const groupOrders = packedGroups[key];
+        
+        text += `\n*Room ${room}, ${timeStr}*\n`;
         
         const roomPackedCounts: Record<string, number> = {};
-        roomOrders.forEach(o => {
+        let driverPacked = 0;
+        let driverNotes = "";
+        
+        groupOrders.forEach(o => {
           if (o.isPackedBreakfast && o.packedSandwichChoice) {
             roomPackedCounts[o.packedSandwichChoice] = (roomPackedCounts[o.packedSandwichChoice] || 0) + 1;
+          }
+          if (o.driverPackedBreakfasts && o.driverPackedBreakfasts > 0) {
+            driverPacked = o.driverPackedBreakfasts;
+            if (o.driverBreakfastNotes) driverNotes = o.driverBreakfastNotes;
           }
         });
         
@@ -189,10 +200,10 @@ export default function KitchenDashboard() {
           text += `• ${k}: *${roomPackedCounts[k]}*\n`;
         });
         
-        if (roomOrders[0]?.driverPackedBreakfasts && roomOrders[0].driverPackedBreakfasts > 0) {
-          text += `• Driver sandwich: *${roomOrders[0].driverPackedBreakfasts}*`;
-          if (roomOrders[0].driverBreakfastNotes) {
-            text += ` (${roomOrders[0].driverBreakfastNotes})`;
+        if (driverPacked > 0) {
+          text += `• Driver sandwich: *${driverPacked}*`;
+          if (driverNotes) {
+            text += ` (${driverNotes})`;
           }
           text += `\n`;
         }
@@ -553,8 +564,11 @@ export default function KitchenDashboard() {
           <div className="space-y-12">
             {Object.entries(
               orders.reduce((acc, order) => {
-                if (!acc[order.roomNumber]) acc[order.roomNumber] = [];
-                acc[order.roomNumber].push(order);
+                const isPacked = order.isPackedBreakfast ? 'packed' : 'dine-in';
+                const timeStr = order.breakfastTime || 'notime';
+                const groupKey = `${order.roomNumber}|${timeStr}|${isPacked}`;
+                if (!acc[groupKey]) acc[groupKey] = [];
+                acc[groupKey].push(order);
                 return acc;
               }, {} as Record<string, Order[]>)
             ).sort((a, b) => {
@@ -576,13 +590,17 @@ export default function KitchenDashboard() {
               }
               
               // 3. Fallback to room number
-              return a[0].localeCompare(b[0]);
-            }).map(([roomNumber, roomOrders]) => {
+              return ordersA[0].roomNumber.localeCompare(ordersB[0].roomNumber);
+            }).map(([groupKey, roomOrders]) => {
+              const roomNumber = roomOrders[0].roomNumber;
               return (
-                <div key={roomNumber} className="bg-white rounded-2xl shadow-sm border border-[var(--stone-200)] overflow-hidden">
+                <div key={groupKey} className="bg-white rounded-2xl shadow-sm border border-[var(--stone-200)] overflow-hidden">
                   <div className="bg-[var(--stone-900)] p-4 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center relative gap-4 sm:gap-0">
                     <div>
-                      <h2 className="text-2xl font-medium tracking-wide">Room {roomNumber}</h2>
+                      <h2 className="text-2xl font-medium tracking-wide">
+                        Room {roomNumber} 
+                        {roomOrders[0].isPackedBreakfast && <span className="ml-3 text-sm bg-blue-900/50 text-blue-200 px-3 py-1 rounded-full uppercase tracking-widest font-bold">Packed</span>}
+                      </h2>
                       <p className="text-[var(--stone-300)] text-sm mt-1">{roomOrders.length} {roomOrders.length === 1 ? 'Guest' : 'Guests'}</p>
                       {roomOrders[0]?.staffName && (
                         <p className="text-xs text-[var(--accent-gold)] mt-1 opacity-90">Taken by: {roomOrders[0].staffName}</p>
@@ -612,10 +630,8 @@ export default function KitchenDashboard() {
 
                         <button 
                           onClick={async () => {
-                            if (confirm(`Are you sure you want to clear all orders for Room ${roomNumber}?`)) {
-                              const q = query(collection(db, "orders"), where("roomNumber", "==", roomNumber));
-                              const querySnapshot = await getDocs(q);
-                              const deletePromises = querySnapshot.docs.map(docSnap => deleteDoc(doc(db, "orders", docSnap.id)));
+                            if (confirm(`Are you sure you want to clear these orders for Room ${roomNumber}?`)) {
+                              const deletePromises = roomOrders.map(o => deleteDoc(doc(db, "orders", o.id)));
                               await Promise.all(deletePromises);
                             }
                           }}
