@@ -70,8 +70,6 @@ type GuestOrderDraft = {
   isPackedBreakfast: boolean;
   packedSandwichChoice: PackedSandwichType | null;
   dietaryNotes: string;
-  breakfastDate: string;
-  breakfastTime: string;
 };
 
 const defaultGuestOrder = (index: number): GuestOrderDraft => ({
@@ -92,8 +90,6 @@ const defaultGuestOrder = (index: number): GuestOrderDraft => ({
   isPackedBreakfast: false,
   packedSandwichChoice: null,
   dietaryNotes: "",
-  breakfastDate: "", // Will be filled in startOrdering
-  breakfastTime: "",
 });
 
 export default function GuestMenuPage() {
@@ -178,9 +174,7 @@ export default function GuestMenuPage() {
     setError("");
     setGuestOrders(Array.from({ length: guestCount }, (_, i) => ({
       ...defaultGuestOrder(i),
-      isPackedBreakfast: orderType === 'packed',
-      breakfastDate: breakfastDate,
-      breakfastTime: breakfastTime
+      isPackedBreakfast: orderType === 'packed'
     })));
     setCurrentGuestIndex(0);
     setStep(2);
@@ -235,14 +229,15 @@ export default function GuestMenuPage() {
   };
 
   const formatOrderForWhatsApp = () => {
+    const combinedTime = `${breakfastDate}T${breakfastTime}`;
+    const timeFormatted = new Date(combinedTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
     let text = `*New Breakfast Order*\n`;
     text += `Room: ${roomNumber}\n`;
+    text += `Time: ${timeFormatted}\n`;
     text += `Guests: ${guestCount}\n\n`;
 
     guestOrders.forEach((order, idx) => {
-      const combinedTime = `${order.breakfastDate}T${order.breakfastTime}`;
-      const timeFormatted = new Date(combinedTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-      text += `*${order.guestName}* - ${timeFormatted}\n\n`;
+      text += `*${order.guestName}*\n\n`;
       
       if (order.isPackedBreakfast) {
         text += `[PACKED BREAKFAST]\n`;
@@ -350,7 +345,7 @@ export default function GuestMenuPage() {
         beverage: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverage : undefined,
         beverageIncludesMilk: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverageIncludesMilk : undefined,
         dietaryNotes: go.dietaryNotes,
-        breakfastTime: new Date(`${go.breakfastDate}T${go.breakfastTime}`).toISOString(),
+        breakfastTime: new Date(`${breakfastDate}T${breakfastTime}`).toISOString(),
         staffName: staffName || "Unknown Staff",
       }));
 
@@ -488,7 +483,7 @@ export default function GuestMenuPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Default Order Type</label>
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Order Type</label>
                     <div className="flex bg-[var(--stone-100)] rounded-xl p-1 h-[58px]">
                       <button
                         onClick={() => setOrderType('dine-in')}
@@ -508,7 +503,7 @@ export default function GuestMenuPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Default Breakfast Date</label>
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Breakfast Date</label>
                     <input 
                       type="date" 
                       value={breakfastDate}
@@ -517,7 +512,7 @@ export default function GuestMenuPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Default Breakfast Time</label>
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Breakfast Time</label>
                     <input 
                       type="time" 
                       value={breakfastTime}
@@ -561,47 +556,6 @@ export default function GuestMenuPage() {
                       className="w-full border-b border-[var(--stone-200)] pb-2 focus:border-[var(--accent-gold)] focus:outline-none bg-transparent transition-colors text-lg"
                       placeholder={`Guest ${currentGuestIndex + 1}`}
                     />
-                  </div>
-
-                  <div className="bg-[var(--stone-50)] p-4 rounded-xl border border-[var(--stone-200)] space-y-4">
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--stone-800)] mb-2 uppercase tracking-wider">Guest Order Type</label>
-                      <div className="flex bg-white rounded-lg p-1 shadow-sm border border-[var(--stone-200)]">
-                        <button
-                          onClick={() => updateCurrentGuest({ isPackedBreakfast: false })}
-                          className={`flex-1 text-sm font-medium py-1.5 rounded transition-colors ${!currentGuest.isPackedBreakfast ? 'bg-[var(--stone-900)] text-white shadow-sm' : 'text-[var(--stone-600)] hover:text-[var(--stone-900)]'}`}
-                        >
-                          Dine-In
-                        </button>
-                        <button
-                          onClick={() => updateCurrentGuest({ isPackedBreakfast: true })}
-                          className={`flex-1 text-sm font-medium py-1.5 rounded transition-colors ${currentGuest.isPackedBreakfast ? 'bg-[var(--stone-900)] text-white shadow-sm' : 'text-[var(--stone-600)] hover:text-[var(--stone-900)]'}`}
-                        >
-                          Packed Breakfast
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--stone-800)] mb-2 uppercase tracking-wider">Date</label>
-                        <input 
-                          type="date" 
-                          value={currentGuest.breakfastDate}
-                          onChange={(e) => updateCurrentGuest({ breakfastDate: e.target.value })}
-                          className="w-full bg-white border border-[var(--stone-200)] rounded-lg py-2 px-3 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] shadow-sm cursor-pointer"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--stone-800)] mb-2 uppercase tracking-wider">Time</label>
-                        <input 
-                          type="time" 
-                          value={currentGuest.breakfastTime}
-                          onChange={(e) => updateCurrentGuest({ breakfastTime: e.target.value })}
-                          className="w-full bg-white border border-[var(--stone-200)] rounded-lg py-2 px-3 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] shadow-sm cursor-pointer"
-                        />
-                      </div>
-                    </div>
                   </div>
 
                   {!currentGuest.isPackedBreakfast ? (
