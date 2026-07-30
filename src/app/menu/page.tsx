@@ -172,6 +172,11 @@ export default function GuestMenuPage() {
       return;
     }
     setError("");
+    if (orderType === 'dine-in') {
+      setDriverPackedBreakfasts(0);
+      setDriverBreakfastNotes('');
+    }
+    
     setGuestOrders(Array.from({ length: guestCount }, (_, i) => ({
       ...defaultGuestOrder(i),
       isPackedBreakfast: orderType === 'packed'
@@ -846,38 +851,40 @@ export default function GuestMenuPage() {
                 ))}
               </div>
               
-              <div className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] p-6 space-y-4">
-                <h3 className="text-lg font-semibold text-[var(--stone-900)] border-b border-[var(--stone-100)] pb-3">Driver Packed Breakfasts</h3>
-                <p className="text-sm text-[var(--stone-500)]">Add any packed breakfasts needed for drivers (1 Sandwich + Grab-and-Go Bag each).</p>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-4 bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl p-2 w-max">
-                    <button 
-                      type="button"
-                      onClick={() => setDriverPackedBreakfasts(prev => Math.max(0, prev - 1))}
-                      className="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors shadow-sm"
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center font-medium text-[var(--stone-900)]">{driverPackedBreakfasts}</span>
-                    <button 
-                      type="button"
-                      onClick={() => setDriverPackedBreakfasts(prev => prev + 1)}
-                      className="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors shadow-sm"
-                    >
-                      +
-                    </button>
+              {orderType === 'packed' && (
+                <div className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] p-6 space-y-4">
+                  <h3 className="text-lg font-semibold text-[var(--stone-900)] border-b border-[var(--stone-100)] pb-3">Driver Packed Breakfasts</h3>
+                  <p className="text-sm text-[var(--stone-500)]">Add any packed breakfasts needed for drivers (1 Sandwich + Grab-and-Go Bag each).</p>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-4 bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl p-2 w-max">
+                      <button 
+                        type="button"
+                        onClick={() => setDriverPackedBreakfasts(prev => Math.max(0, prev - 1))}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors shadow-sm"
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center font-medium text-[var(--stone-900)]">{driverPackedBreakfasts}</span>
+                      <button 
+                        type="button"
+                        onClick={() => setDriverPackedBreakfasts(prev => prev + 1)}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors shadow-sm"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
+                  {driverPackedBreakfasts > 0 && (
+                    <textarea
+                      value={driverBreakfastNotes}
+                      onChange={(e) => setDriverBreakfastNotes(e.target.value)}
+                      placeholder="Notes (e.g. 1 Chicken, 1 Cheese)"
+                      className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-3 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                      rows={2}
+                    />
+                  )}
                 </div>
-                {driverPackedBreakfasts > 0 && (
-                  <textarea
-                    value={driverBreakfastNotes}
-                    onChange={(e) => setDriverBreakfastNotes(e.target.value)}
-                    placeholder="Notes (e.g. 1 Chicken, 1 Cheese)"
-                    className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-3 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
-                    rows={2}
-                  />
-                )}
-              </div>
+              )}
 
               <div className="bg-green-50 p-4 rounded-xl border border-green-200 text-sm text-green-800">
                 Submitting will send this order to the kitchen and open WhatsApp so you can notify the staff group.
