@@ -22,6 +22,7 @@ export default function KitchenDashboard() {
   const [showSummary, setShowSummary] = useState(false);
   const [occupancy, setOccupancy] = useState<Record<string, { occupied: boolean; guests: number; kids?: number; time?: string; type?: 'English' | 'Sri Lankan' }>>({});
   const [extraMeals, setExtraMeals] = useState<{ drivers: number; staff: number }>({ drivers: 0, staff: 0 });
+  const [filterTab, setFilterTab] = useState<'active' | 'completed'>('active');
 
   useEffect(() => {
     const q = query(collection(db, "orders"));
@@ -360,7 +361,7 @@ export default function KitchenDashboard() {
   return (
     <div className="min-h-screen bg-[var(--stone-50)] p-6 sm:p-10">
       <div className="max-w-7xl mx-auto">
-        <header className="mb-10 flex justify-between items-end border-b border-[var(--stone-200)] pb-6">
+        <header className="mb-8 flex justify-between items-end border-b border-[var(--stone-200)] pb-6">
           <div>
             <Link href="/" className="inline-flex items-center space-x-1 text-sm font-medium text-[var(--stone-500)] hover:text-[var(--stone-900)] transition-colors mb-4">
               <span>&larr; Home</span>
@@ -368,17 +369,33 @@ export default function KitchenDashboard() {
             <h1 className="text-3xl font-light text-[var(--stone-900)] tracking-wide">Kitchen Dashboard</h1>
             <p className="text-[var(--stone-800)] mt-2 font-light">Real-time order monitoring</p>
           </div>
-          <div className="text-sm font-medium text-[var(--stone-800)] flex items-center space-x-2">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-            </span>
-            <span>Live updates active</span>
+          <div className="flex flex-col items-end space-y-4">
+            <div className="text-sm font-medium text-[var(--stone-800)] flex items-center space-x-2">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+              <span>Live updates active</span>
+            </div>
           </div>
         </header>
 
-        {/* Production Summary Toggle */}
-        <div className="mb-8 flex justify-end">
+        {/* Filters and Summary Toggle */}
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+          <div className="flex space-x-2">
+            <button 
+              onClick={() => setFilterTab('active')}
+              className={`px-5 py-2.5 text-sm font-medium rounded-full transition-colors ${filterTab === 'active' ? 'bg-[var(--accent-gold)] text-[var(--stone-900)] shadow-sm' : 'bg-white text-[var(--stone-500)] border border-[var(--stone-200)] hover:bg-[var(--stone-100)]'}`}
+            >
+              Active Orders
+            </button>
+            <button 
+              onClick={() => setFilterTab('completed')}
+              className={`px-5 py-2.5 text-sm font-medium rounded-full transition-colors ${filterTab === 'completed' ? 'bg-green-600 text-white shadow-sm' : 'bg-white text-[var(--stone-500)] border border-[var(--stone-200)] hover:bg-[var(--stone-100)]'}`}
+            >
+              Completed Orders
+            </button>
+          </div>
           <button 
             onClick={() => setShowSummary(!showSummary)}
             className="px-6 py-3 bg-[var(--stone-900)] hover:bg-[var(--stone-800)] text-white text-sm font-semibold uppercase tracking-wider rounded-xl transition-colors shadow-lg flex items-center space-x-2"
@@ -605,15 +622,24 @@ export default function KitchenDashboard() {
 
         {loading ? (
           <div className="text-center py-20 text-[var(--stone-800)]">Loading orders...</div>
-        ) : orders.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-[var(--stone-200)] shadow-sm">
-            <h3 className="text-xl text-[var(--stone-900)] font-light">No Active Orders</h3>
-            <p className="text-[var(--stone-800)] mt-2">Waiting for new requests...</p>
-          </div>
-        ) : (
-          <div className="space-y-12">
-            {Object.entries(
-              orders.reduce((acc, order) => {
+        ) : (() => {
+          const filteredOrders = orders.filter(order => filterTab === 'active' ? order.status !== 'Completed' : order.status === 'Completed');
+          
+          if (filteredOrders.length === 0) {
+            return (
+              <div className="text-center py-20 bg-white rounded-2xl border border-[var(--stone-200)] shadow-sm">
+                <h3 className="text-xl text-[var(--stone-900)] font-light">No {filterTab === 'active' ? 'Active' : 'Completed'} Orders</h3>
+                <p className="text-[var(--stone-800)] mt-2">
+                  {filterTab === 'active' ? 'Waiting for new requests...' : 'No orders have been completed yet today.'}
+                </p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="space-y-12">
+              {Object.entries(
+                filteredOrders.reduce((acc, order) => {
                 const isPacked = order.isPackedBreakfast ? 'packed' : 'dine-in';
                 const timeStr = order.breakfastTime || 'notime';
                 const groupKey = `${order.roomNumber}|${timeStr}|${isPacked}`;
@@ -807,7 +833,8 @@ export default function KitchenDashboard() {
               );
             })}
           </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
