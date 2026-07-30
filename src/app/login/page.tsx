@@ -20,7 +20,7 @@ export default function LoginPage() {
         const querySnapshot = await getDocs(q);
         const fetchedStaff: Staff[] = [];
         querySnapshot.forEach((doc) => {
-          fetchedStaff.push({ name: doc.data().name, pin: doc.data().pin, id: doc.id });
+          fetchedStaff.push({ name: doc.data().name, pin: doc.data().pin });
         });
         
         // Fallback to defaults if empty, just in case
