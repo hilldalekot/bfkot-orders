@@ -612,7 +612,11 @@ export default function KitchenDashboard() {
                   </div>
                   
                   <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-[var(--stone-50)]">
-                    {roomOrders.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map(order => (
+                    {roomOrders.sort((a, b) => {
+                      const timeDiff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                      if (Math.abs(timeDiff) > 1000) return timeDiff; // Only sort by time if diff is > 1s (different orders)
+                      return a.guestName.localeCompare(b.guestName, undefined, { numeric: true });
+                    }).map(order => (
                       <div key={order.id} className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] flex flex-col">
                         <div className="p-4 border-b border-[var(--stone-100)] flex justify-between items-center">
                           <p className="font-medium text-[var(--stone-900)]">{order.guestName}</p>
