@@ -404,26 +404,21 @@ export default function GuestMenuPage() {
     <div className="min-h-screen bg-[var(--stone-50)] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-[var(--stone-100)]">
         
-        <div className="bg-[var(--stone-900)] py-12 px-6 rounded-t-3xl text-center relative">
+        <div className="p-8 sm:p-12 relative pt-12 sm:pt-16">
           {step === 1 && (
-            <Link href="/" className="absolute top-6 left-6 text-white/60 hover:text-white transition-colors text-sm font-medium flex items-center space-x-1">
+            <Link href="/" className="absolute top-6 left-8 sm:left-12 text-[var(--stone-500)] hover:text-[var(--stone-900)] transition-colors text-sm font-medium flex items-center space-x-1">
               <span>&larr; Home</span>
             </Link>
           )}
-          <p className="text-[var(--accent-gold)] text-sm font-bold tracking-widest uppercase mb-3">Good Morning</p>
-          <h1 className="text-3xl md:text-4xl font-light text-white mb-6">Hilldale Retreat</h1>
-          <div className="w-16 h-1 bg-[var(--accent-gold)] mx-auto opacity-70 mb-8"></div>
-          
-          <div className="flex justify-center space-x-2">
+
+          <div className="flex justify-center space-x-2 absolute top-8 right-8 sm:right-12">
             {[1, 2, 3].map(s => (
-              <div key={s} className={`h-1.5 w-12 rounded-full ${step >= s ? 'bg-[var(--accent-gold)]' : 'bg-[var(--stone-700)]'}`} />
+              <div key={s} className={`h-1.5 w-8 sm:w-12 rounded-full ${step >= s ? 'bg-[var(--accent-gold)]' : 'bg-[var(--stone-200)]'}`} />
             ))}
           </div>
-        </div>
-        
-        <div className="p-8 sm:p-12">
+
           {error && (
-            <div className="bg-red-50 text-red-700 p-4 rounded-xl text-sm border border-red-200 mb-8">
+            <div className="bg-red-50 text-red-700 p-4 rounded-xl text-sm border border-red-200 mb-8 mt-4">
               {error}
             </div>
           )}
