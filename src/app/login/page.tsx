@@ -75,16 +75,23 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-slate-800 font-sans">
       <div className="w-full max-w-md bg-white p-8 sm:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden">
         
+        {/* Admin Portal Link */}
+        <a href="/admin" className="absolute top-6 right-6 text-xs text-sky-600 hover:text-sky-700 font-medium transition-colors z-20">
+          Admin Portal &rarr;
+        </a>
+
         {/* Subtle decorative background blur */}
         <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-amber-100 rounded-full mix-blend-multiply filter blur-2xl opacity-70"></div>
         <div className="absolute bottom-[-50px] right-[-50px] w-32 h-32 bg-sky-100 rounded-full mix-blend-multiply filter blur-2xl opacity-70"></div>
 
-        <div className="text-center mb-10 relative z-10">
+        <div className="text-center mb-10 relative z-10 pt-2">
           <img 
             src="/logo.png" 
             alt="Hilldale Retreat Logo" 
-            className="h-20 w-auto mx-auto mb-6 object-contain"
+            className="h-32 w-auto mx-auto mb-2 object-contain"
           />
+          <h2 className="text-lg text-[var(--accent-gold)] font-medium mb-6 tracking-widest uppercase">Breakfast KOT</h2>
+          
           <h1 className="text-2xl tracking-tight text-slate-900 font-semibold mb-1">Welcome Back</h1>
           <p className="text-slate-500 text-sm">Please select your name and enter your PIN</p>
         </div>
@@ -93,7 +100,6 @@ export default function LoginPage() {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-3 flex justify-between items-end">
               <span>Select Name</span>
-              <a href="/admin" className="text-xs text-sky-600 hover:text-sky-700 font-medium transition-colors">Admin Portal &rarr;</a>
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {staffMembers.length === 0 ? (
