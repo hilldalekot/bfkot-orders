@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { StarterType, EggStyle, BeverageType, MainCourseType, FriedEggStyle, PackedSandwichType } from "@/types";
-
+import { db } from "@/lib/firebase";
+import { collection, addDoc } from "firebase/firestore";
 const PACKED_SANDWICHES: PackedSandwichType[] = [
   "Vegetable Sandwich",
   "Egg Sandwich",
@@ -338,15 +339,14 @@ export default function GuestMenuPage() {
       }));
 
       for (const orderPayload of payload) {
-        const res = await fetch("/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderPayload),
+        // Remove undefined fields for Firestore
+        Object.keys(orderPayload).forEach(key => {
+          if ((orderPayload as any)[key] === undefined) {
+            delete (orderPayload as any)[key];
+          }
         });
-
-        if (!res.ok) {
-          throw new Error("Failed to place order.");
-        }
+        
+        await addDoc(collection(db, "orders"), orderPayload);
       }
 
       setIsSuccess(true);
