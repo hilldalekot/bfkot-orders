@@ -381,7 +381,13 @@ export default function KitchenDashboard() {
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-4 border-b border-[var(--stone-200)] pb-2">Room Occupancy</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {ROOM_NUMBERS.map(room => (
+                  {ROOM_NUMBERS.map(room => {
+                    const roomOrders = orders.filter(o => o.roomNumber === room);
+                    const hasOrder = roomOrders.length > 0;
+                    const times = Array.from(new Set(roomOrders.map(o => o.breakfastTime ? new Date(o.breakfastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')));
+                    const timeString = times.filter(Boolean).join(', ');
+
+                    return (
                     <div key={room} className="bg-white p-3 rounded-lg border border-[var(--stone-200)] flex flex-col space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="flex items-center space-x-2 cursor-pointer">
@@ -393,8 +399,11 @@ export default function KitchenDashboard() {
                           />
                           <span className="font-medium text-[var(--stone-900)]">Room {room}</span>
                         </label>
-                        {orders.some(o => o.roomNumber === room) && (
-                          <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">Ordered</span>
+                        {hasOrder && (
+                          <div className="flex items-center space-x-2">
+                            {timeString && <span className="text-[11px] font-semibold text-[var(--accent-gold)]">{timeString}</span>}
+                            <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">Ordered</span>
+                          </div>
                         )}
                       </div>
                       
@@ -432,7 +441,8 @@ export default function KitchenDashboard() {
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 
                 {/* Extra Meals */}
