@@ -65,7 +65,7 @@ export default function KitchenDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const updateOccupancy = (room: string, field: 'occupied' | 'guests', value: any) => {
+  const updateOccupancy = (room: string, field: 'occupied' | 'guests' | 'kids', value: any) => {
     setOccupancy(prev => {
       const next = { ...prev, [room]: { ...prev[room], [field]: value } };
       localStorage.setItem("kitchenOccupancy", JSON.stringify(next));
