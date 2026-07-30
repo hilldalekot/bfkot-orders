@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Staff } from "@/types";
 import Link from "next/link";
+import { db } from "@/lib/firebase";
+import { collection, doc, setDoc, deleteDoc, getDocs, query, orderBy, getDoc } from "firebase/firestore";
 
 const MASTER_PIN = "9999";
 
@@ -30,9 +32,13 @@ export default function AdminPage() {
   const fetchStaff = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/staff");
-      const data = await res.json();
-      if (data.staff) setStaffMembers(data.staff);
+      const q = query(collection(db, "staff"), orderBy("name"));
+      const querySnapshot = await getDocs(q);
+      const fetchedStaff: Staff[] = [];
+      querySnapshot.forEach((docSnap) => {
+        fetchedStaff.push({ name: docSnap.data().name, pin: docSnap.data().pin });
+      });
+      setStaffMembers(fetchedStaff);
     } catch (err) {
       setError("Failed to fetch staff");
     } finally {
@@ -73,23 +79,27 @@ export default function AdminPage() {
     }
 
     try {
-      const url = "/api/staff";
-      const method = editingStaff ? "PUT" : "POST";
-      const body = editingStaff 
-        ? { originalName: editingStaff, name: nameInput, pin: pinInput }
-        : { name: nameInput, pin: pinInput };
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to save");
+      if (editingStaff && editingStaff !== nameInput) {
+        // If name changed, check if new name already exists
+        const newDocSnap = await getDoc(doc(db, "staff", nameInput.toLowerCase()));
+        if (newDocSnap.exists()) {
+          throw new Error("Staff member with this name already exists");
+        }
+        // Delete old doc
+        await deleteDoc(doc(db, "staff", editingStaff.toLowerCase()));
+      } else if (!editingStaff) {
+        // If new staff, check if exists
+        const docSnap = await getDoc(doc(db, "staff", nameInput.toLowerCase()));
+        if (docSnap.exists()) {
+          throw new Error("Staff member with this name already exists");
+        }
       }
+
+      // Save or update doc using lowercased name as ID
+      await setDoc(doc(db, "staff", nameInput.toLowerCase()), {
+        name: nameInput,
+        pin: pinInput
+      });
 
       await fetchStaff();
       resetForm();
@@ -102,8 +112,7 @@ export default function AdminPage() {
     if (!confirm(`Are you sure you want to delete ${name}?`)) return;
 
     try {
-      const res = await fetch(`/api/staff?name=${encodeURIComponent(name)}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete");
+      await deleteDoc(doc(db, "staff", name.toLowerCase()));
       await fetchStaff();
     } catch (err: any) {
       setError(err.message);

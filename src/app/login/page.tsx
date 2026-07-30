@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Staff } from "@/types";
-
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 export default function LoginPage() {
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
   const [selectedStaff, setSelectedStaff] = useState<string>("");
@@ -12,13 +13,26 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Fetch staff list
-    fetch("/api/staff")
-      .then(res => res.json())
-      .then(data => {
-        if (data.staff) setStaffMembers(data.staff);
-      })
-      .catch(err => console.error("Failed to load staff", err));
+    // Fetch staff list from Firestore
+    const loadStaff = async () => {
+      try {
+        const q = query(collection(db, "staff"), orderBy("name"));
+        const querySnapshot = await getDocs(q);
+        const fetchedStaff: Staff[] = [];
+        querySnapshot.forEach((doc) => {
+          fetchedStaff.push({ name: doc.data().name, pin: doc.data().pin, id: doc.id });
+        });
+        
+        // Fallback to defaults if empty, just in case
+        if (fetchedStaff.length === 0) {
+          fetchedStaff.push({ name: "John", pin: "1111" }, { name: "Sarah", pin: "2222" }, { name: "Mike", pin: "3333" });
+        }
+        setStaffMembers(fetchedStaff);
+      } catch (err) {
+        console.error("Failed to load staff", err);
+      }
+    };
+    loadStaff();
 
     // If already logged in, redirect to home
     const staff = localStorage.getItem("staffName");
