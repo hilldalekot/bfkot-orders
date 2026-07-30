@@ -63,6 +63,7 @@ type GuestOrderDraft = {
   includesEggs: boolean;
   eggStyle: EggStyle;
   friedEggStyle: FriedEggStyle;
+  eggNotes: string;
   includesBeverage: boolean;
   beverage: BeverageType;
   beverageIncludesMilk: boolean;
@@ -82,6 +83,7 @@ const defaultGuestOrder = (index: number): GuestOrderDraft => ({
   includesEggs: false,
   eggStyle: "Omelet",
   friedEggStyle: "Sunny-Side Up",
+  eggNotes: "",
   includesBeverage: false,
   beverage: "Ceylon Tea",
   beverageIncludesMilk: false,
@@ -276,6 +278,9 @@ export default function GuestMenuPage() {
           let eggText = order.eggStyle;
           if (order.eggStyle === "Fried Egg" && order.friedEggStyle) {
             eggText += ` (${order.friedEggStyle})`;
+          }
+          if (order.eggNotes) {
+            eggText += ` - ${order.eggNotes}`;
           }
           text += `Eggs: *${eggText}*\n`;
         } else {
@@ -680,11 +685,18 @@ export default function GuestMenuPage() {
                             <select 
                               value={currentGuest.friedEggStyle}
                               onChange={(e) => updateCurrentGuest({ friedEggStyle: e.target.value as FriedEggStyle })}
-                              className="w-full appearance-none bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] cursor-pointer"
+                              className="w-full appearance-none bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] cursor-pointer mb-3"
                             >
                               {FRIED_EGG_STYLES.map(style => <option key={style} value={style}>{style}</option>)}
                             </select>
                           )}
+                          <input 
+                            type="text"
+                            placeholder="Any notes for eggs? (e.g. Well done, soft boiled)"
+                            value={currentGuest.eggNotes}
+                            onChange={(e) => updateCurrentGuest({ eggNotes: e.target.value })}
+                            className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                          />
                         </div>
                       )}
                     </div>
@@ -817,7 +829,7 @@ export default function GuestMenuPage() {
                           )}
                           
                           {order.includesEggs && (
-                            <p><span className="font-medium text-[var(--stone-900)]">Eggs:</span> {order.eggStyle} {order.eggStyle === "Fried Egg" && `(${order.friedEggStyle})`}</p>
+                            <p><span className="font-medium text-[var(--stone-900)]">Eggs:</span> {order.eggStyle} {order.eggStyle === "Fried Egg" && `(${order.friedEggStyle})`} {order.eggNotes && <span className="text-sm italic text-[var(--stone-500)]">- {order.eggNotes}</span>}</p>
                           )}
                           
                           {order.includesBeverage && (
