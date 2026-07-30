@@ -72,11 +72,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-slate-800 font-sans">
-      <div className="w-full max-w-md bg-white p-8 sm:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-slate-800 font-sans">
+      <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden">
         
         {/* Admin Portal Link */}
-        <a href="/admin" className="absolute top-6 right-6 text-xs text-sky-600 hover:text-sky-700 font-medium transition-colors z-20">
+        <a href="/admin" className="absolute top-5 right-5 text-xs text-sky-600 hover:text-sky-700 font-medium transition-colors z-20">
           Admin Portal &rarr;
         </a>
 
@@ -84,19 +84,19 @@ export default function LoginPage() {
         <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-amber-100 rounded-full mix-blend-multiply filter blur-2xl opacity-70"></div>
         <div className="absolute bottom-[-50px] right-[-50px] w-32 h-32 bg-sky-100 rounded-full mix-blend-multiply filter blur-2xl opacity-70"></div>
 
-        <div className="text-center mb-10 relative z-10 pt-2">
+        <div className="text-center mb-6 relative z-10 pt-2">
           <img 
             src="/logo.png" 
             alt="Hilldale Retreat Logo" 
-            className="h-32 w-auto mx-auto mb-2 object-contain"
+            className="h-24 w-auto mx-auto mb-2 object-contain"
           />
-          <h2 className="text-lg text-[var(--accent-gold)] font-medium mb-6 tracking-widest uppercase">Breakfast KOT</h2>
+          <h2 className="text-base text-[var(--accent-gold)] font-medium mb-3 tracking-widest uppercase">Breakfast KOT</h2>
           
-          <h1 className="text-2xl tracking-tight text-slate-900 font-semibold mb-1">Welcome Back</h1>
-          <p className="text-slate-500 text-sm">Please select your name and enter your PIN</p>
+          <h1 className="text-xl tracking-tight text-slate-900 font-semibold mb-1">Welcome Back</h1>
+          <p className="text-slate-500 text-xs">Please select your name and enter your PIN</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-8 relative z-10">
+        <form onSubmit={handleLogin} className="space-y-4 relative z-10">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-3 flex justify-between items-end">
               <span>Select Name</span>
@@ -125,25 +125,25 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="pt-2">
-            <div className="flex justify-center space-x-5 mb-8">
+          <div className="pt-1">
+            <div className="flex justify-center space-x-5 mb-4">
               {[0, 1, 2, 3].map((i) => (
                 <div 
                   key={i} 
-                  className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
                     pin.length > i ? "bg-slate-900 scale-110" : "bg-slate-200"
                   }`} 
                 />
               ))}
             </div>
 
-            <div className="grid grid-cols-3 gap-y-4 gap-x-6 max-w-[260px] mx-auto">
+            <div className="grid grid-cols-3 gap-y-2 gap-x-6 max-w-[220px] mx-auto">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                 <button
                   key={num}
                   type="button"
                   onClick={() => handleKeypadPress(num.toString())}
-                  className="w-14 h-14 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 text-2xl font-medium mx-auto flex items-center justify-center transition-colors active:bg-slate-200"
+                  className="w-12 h-12 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 text-xl font-medium mx-auto flex items-center justify-center transition-colors active:bg-slate-200"
                 >
                   {num}
                 </button>
@@ -152,7 +152,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => handleKeypadPress("0")}
-                  className="w-14 h-14 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 text-2xl font-medium mx-auto flex items-center justify-center transition-colors active:bg-slate-200"
+                  className="w-12 h-12 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-700 text-xl font-medium mx-auto flex items-center justify-center transition-colors active:bg-slate-200"
                 >
                   0
                 </button>
@@ -161,9 +161,9 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="w-14 h-14 rounded-full text-slate-400 hover:text-slate-600 mx-auto flex items-center justify-center transition-colors active:bg-slate-100"
+                  className="w-12 h-12 rounded-full text-slate-400 hover:text-slate-600 mx-auto flex items-center justify-center transition-colors active:bg-slate-100"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75L14.25 12m0 0l2.25 2.25M14.25 12l2.25-2.25M14.25 12L12 14.25m-2.58 4.92l-6.375-6.375a1.125 1.125 0 010-1.59L9.42 4.83c.211-.211.498-.33.796-.33H19.5a2.25 2.25 0 012.25 2.25v10.5a2.25 2.25 0 01-2.25 2.25h-9.284c-.298 0-.585-.119-.796-.33z" />
                   </svg>
                 </button>
@@ -171,14 +171,14 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="h-6 flex items-center justify-center">
-            {error && <p className="text-red-500 text-sm font-medium animate-pulse">{error}</p>}
+          <div className="h-5 flex items-center justify-center mt-2">
+            {error && <p className="text-red-500 text-xs font-medium animate-pulse">{error}</p>}
           </div>
 
           <button
             type="submit"
             disabled={pin.length < 4 || !selectedStaff}
-            className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 text-white font-medium py-4 rounded-2xl tracking-wide transition-all shadow-md disabled:shadow-none"
+            className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 text-white font-medium py-3 rounded-xl tracking-wide transition-all shadow-md disabled:shadow-none mt-2 text-sm"
           >
             Sign In
           </button>
