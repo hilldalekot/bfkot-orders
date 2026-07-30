@@ -20,7 +20,7 @@ export default function KitchenDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSummary, setShowSummary] = useState(false);
-  const [occupancy, setOccupancy] = useState<Record<string, { occupied: boolean; guests: number; kids?: number }>>({});
+  const [occupancy, setOccupancy] = useState<Record<string, { occupied: boolean; guests: number; kids?: number; time?: string; type?: 'English' | 'Sri Lankan' }>>({});
   const [extraMeals, setExtraMeals] = useState<{ drivers: number; staff: number }>({ drivers: 0, staff: 0 });
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function KitchenDashboard() {
     return () => unsubscribe();
   }, []);
 
-  const updateOccupancy = (room: string, field: 'occupied' | 'guests' | 'kids', value: any) => {
+  const updateOccupancy = (room: string, field: 'occupied' | 'guests' | 'kids' | 'time' | 'type', value: any) => {
     setOccupancy(prev => {
       const next = { ...prev, [room]: { ...prev[room], [field]: value } };
       localStorage.setItem("kitchenOccupancy", JSON.stringify(next));
@@ -213,6 +213,27 @@ export default function KitchenDashboard() {
       text += `_(Each bag: 1 Banana, 1 Yoghurt, 1 Water)_\n`;
     }
     
+    const defaultRooms = ROOM_NUMBERS.filter(room => {
+      const roomOrders = orders.filter(o => o.roomNumber === room);
+      return roomOrders.length === 0 && occupancy[room]?.occupied;
+    });
+
+    if (defaultRooms.length > 0) {
+      text += `\n*EXPECTED DINE-IN BREAKFASTS (NO EXPLICIT ORDER)*\n`;
+      defaultRooms.forEach(room => {
+        const occ = occupancy[room];
+        let timeStr = 'Time not specified';
+        if (occ.time) {
+          const [h, m] = occ.time.split(':');
+          const d = new Date();
+          d.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+          timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        const typeStr = occ.type || 'English';
+        text += `• Room ${room}: ${typeStr} @ ${timeStr} (${occ.guests || 2} Guests, ${occ.kids || 0} Kids)\n`;
+      });
+    }
+
     if (extraMeals.drivers > 0 || extraMeals.staff > 0) {
       text += `\n*EXTRA MEALS*\n`;
       if (extraMeals.drivers > 0) text += `• Driver Meals: *${extraMeals.drivers}*\n`;
@@ -399,11 +420,30 @@ export default function KitchenDashboard() {
                           />
                           <span className="font-medium text-[var(--stone-900)]">Room {room}</span>
                         </label>
-                        {hasOrder && (
+                        {hasOrder ? (
                           <div className="flex items-center space-x-2">
                             {timeString && <span className="text-[11px] font-semibold text-[var(--accent-gold)]">{timeString}</span>}
                             <span className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">Ordered</span>
                           </div>
+                        ) : (
+                          occupancy[room]?.occupied && (
+                            <div className="flex items-center space-x-2">
+                              <input 
+                                type="time" 
+                                value={occupancy[room]?.time || ''} 
+                                onChange={(e) => updateOccupancy(room, 'time', e.target.value)}
+                                className="text-[10px] bg-[var(--stone-100)] border border-[var(--stone-200)] rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                              />
+                              <select 
+                                value={occupancy[room]?.type || 'English'} 
+                                onChange={(e) => updateOccupancy(room, 'type', e.target.value)}
+                                className="text-[10px] bg-[var(--stone-100)] border border-[var(--stone-200)] rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                              >
+                                <option value="English">English</option>
+                                <option value="Sri Lankan">Sri Lankan</option>
+                              </select>
+                            </div>
+                          )
                         )}
                       </div>
                       
