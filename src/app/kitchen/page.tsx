@@ -551,14 +551,33 @@ export default function KitchenDashboard() {
           </div>
         ) : (
           <div className="space-y-12">
-            {Object.keys(
+            {Object.entries(
               orders.reduce((acc, order) => {
                 if (!acc[order.roomNumber]) acc[order.roomNumber] = [];
                 acc[order.roomNumber].push(order);
                 return acc;
               }, {} as Record<string, Order[]>)
-            ).sort().map(roomNumber => {
-              const roomOrders = orders.filter(o => o.roomNumber === roomNumber);
+            ).sort((a, b) => {
+              const ordersA = a[1];
+              const ordersB = b[1];
+              
+              // 1. Sort by Dine-In vs Packed Breakfast
+              const isPackedA = ordersA[0]?.isPackedBreakfast ? 1 : 0;
+              const isPackedB = ordersB[0]?.isPackedBreakfast ? 1 : 0;
+              if (isPackedA !== isPackedB) {
+                return isPackedA - isPackedB;
+              }
+              
+              // 2. Sort by Requested Time
+              const timeA = ordersA[0]?.breakfastTime ? new Date(ordersA[0].breakfastTime).getTime() : 0;
+              const timeB = ordersB[0]?.breakfastTime ? new Date(ordersB[0].breakfastTime).getTime() : 0;
+              if (timeA !== timeB) {
+                return timeA - timeB;
+              }
+              
+              // 3. Fallback to room number
+              return a[0].localeCompare(b[0]);
+            }).map(([roomNumber, roomOrders]) => {
               return (
                 <div key={roomNumber} className="bg-white rounded-2xl shadow-sm border border-[var(--stone-200)] overflow-hidden">
                   <div className="bg-[var(--stone-900)] p-4 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center relative gap-4 sm:gap-0">
