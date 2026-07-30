@@ -7,8 +7,7 @@ import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { collection, doc, setDoc, deleteDoc, getDocs, query, orderBy, getDoc } from "firebase/firestore";
 
-const MASTER_PIN = "9999";
-
+const DEFAULT_MASTER_PIN = "9999";
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [masterPin, setMasterPin] = useState("");
@@ -20,6 +19,11 @@ export default function AdminPage() {
   const [editingStaff, setEditingStaff] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState("");
   const [pinInput, setPinInput] = useState("");
+  
+  // Master PIN change states
+  const [newMasterPin, setNewMasterPin] = useState("");
+  const [isChangingMasterPin, setIsChangingMasterPin] = useState(false);
+  const [masterPinSuccess, setMasterPinSuccess] = useState("");
 
   const router = useRouter();
 
@@ -46,14 +50,52 @@ export default function AdminPage() {
     }
   };
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (masterPin === MASTER_PIN) {
-      setIsAuthenticated(true);
-      setError("");
-    } else {
-      setError("Invalid Master PIN");
-      setMasterPin("");
+    setError("");
+    setLoading(true);
+    
+    try {
+      const docSnap = await getDoc(doc(db, "settings", "admin"));
+      let currentMasterPin = DEFAULT_MASTER_PIN;
+      
+      if (docSnap.exists() && docSnap.data().masterPin) {
+        currentMasterPin = docSnap.data().masterPin;
+      }
+      
+      if (masterPin === currentMasterPin) {
+        setIsAuthenticated(true);
+        setError("");
+      } else {
+        setError("Invalid Master PIN");
+        setMasterPin("");
+      }
+    } catch (err) {
+      setError("Failed to verify PIN. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangeMasterPin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setMasterPinSuccess("");
+
+    if (newMasterPin.length !== 4 || isNaN(Number(newMasterPin))) {
+      setError("Master PIN must be exactly 4 digits");
+      return;
+    }
+
+    try {
+      setIsChangingMasterPin(true);
+      await setDoc(doc(db, "settings", "admin"), { masterPin: newMasterPin }, { merge: true });
+      setMasterPinSuccess("Master PIN successfully updated!");
+      setNewMasterPin("");
+    } catch (err: any) {
+      setError(err.message || "Failed to update Master PIN");
+    } finally {
+      setIsChangingMasterPin(false);
     }
   };
 
@@ -140,9 +182,12 @@ export default function AdminPage() {
             {error && <p className="text-red-400 text-sm text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-[var(--accent-gold)] text-[var(--stone-900)] font-semibold py-3 rounded-lg hover:bg-[#c9a059] transition-colors uppercase text-sm tracking-wider"
+              disabled={loading}
+              className={`w-full font-semibold py-3 rounded-lg transition-colors uppercase text-sm tracking-wider ${
+                loading ? 'bg-[var(--stone-600)] text-[var(--stone-400)] cursor-not-allowed' : 'bg-[var(--accent-gold)] text-[var(--stone-900)] hover:bg-[#c9a059]'
+              }`}
             >
-              Unlock
+              {loading ? 'Verifying...' : 'Unlock'}
             </button>
             <div className="text-center pt-2">
               <Link href="/login" className="text-xs text-[var(--stone-500)] hover:text-white transition-colors">&larr; Back to Login</Link>
