@@ -314,6 +314,49 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+
+        {/* Change Master PIN Section */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-[var(--stone-200)] mt-8">
+          <h2 className="text-xl font-semibold text-[var(--stone-800)] mb-4 pb-2 border-b border-[var(--stone-100)] flex items-center gap-2">
+            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Change Admin PIN
+          </h2>
+          
+          <form onSubmit={handleChangeMasterPin} className="max-w-md">
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-[var(--stone-600)] mb-1">
+                  New 4-Digit Master PIN
+                </label>
+                <input
+                  type="password"
+                  maxLength={4}
+                  pattern="\d{4}"
+                  value={newMasterPin}
+                  onChange={(e) => setNewMasterPin(e.target.value)}
+                  placeholder="e.g. 9999"
+                  className="w-full p-3 border border-[var(--stone-300)] rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 font-mono text-lg text-black bg-white"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isChangingMasterPin}
+                className={`px-6 py-3 rounded-xl text-white font-medium transition-colors h-[52px] ${
+                  isChangingMasterPin ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {isChangingMasterPin ? 'Saving...' : 'Update PIN'}
+              </button>
+            </div>
+            {masterPinSuccess && (
+              <p className="mt-3 text-sm text-green-600 font-medium">{masterPinSuccess}</p>
+            )}
+          </form>
+        </div>
+
       </div>
     </div>
   );
