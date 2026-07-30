@@ -873,8 +873,8 @@ export default function GuestMenuPage() {
               <button 
                 onClick={submitOrder}
                 disabled={isSubmitting}
-                className={`w-full flex items-center justify-center py-4 mt-8 rounded-xl text-white font-medium tracking-widest uppercase transition-all shadow-md hover:shadow-lg ${
-                  isSubmitting ? 'bg-[var(--stone-400)] cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                className={`w-full flex items-center justify-center py-4 mt-8 rounded-xl text-white font-medium tracking-widest uppercase transition-all shadow-md ${
+                  isSubmitting ? 'bg-[#a8a29e] cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
                 }`}
               >
                 {isSubmitting ? 'Processing...' : 'Confirm & Send to WhatsApp'}
