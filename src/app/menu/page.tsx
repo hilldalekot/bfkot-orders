@@ -126,16 +126,21 @@ export default function GuestMenuPage() {
       return `${year}-${month}-${day}`;
     };
 
-    // Auto-roll rule: If past 13:00, set to tomorrow at 07:30
-    if (hours >= 13) {
+    // Auto-roll rule: If past 12:00 (Noon), set to tomorrow at 07:30
+    if (hours >= 12) {
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
       setBreakfastDate(getLocalDateString(tomorrow));
       setBreakfastTime("07:30");
-    } else {
+    } else if (hours >= 6 && hours < 12) {
+      // Between 06:00 and 12:00, use current time
       setBreakfastDate(getLocalDateString(now));
       const mins = String(now.getMinutes()).padStart(2, '0');
       setBreakfastTime(`${String(hours).padStart(2, '0')}:${mins}`);
+    } else {
+      // Before 06:00, default to today at 07:30
+      setBreakfastDate(getLocalDateString(now));
+      setBreakfastTime("07:30");
     }
 
     const staff = localStorage.getItem("staffName");
@@ -510,8 +515,8 @@ export default function GuestMenuPage() {
                     />
                   </div>
                 </div>
-                <p className="text-xs text-[var(--stone-500)] mt-2">
-                  Orders placed after 1:00 PM automatically default to 7:30 AM tomorrow.
+                <p className="text-[10px] text-[var(--stone-500)] mt-2 italic px-1">
+                  Orders placed after 12:00 PM automatically default to 7:30 AM tomorrow.
                 </p>
               </div>
 
