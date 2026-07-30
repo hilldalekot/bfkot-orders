@@ -1,0 +1,876 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { StarterType, EggStyle, BeverageType, MainCourseType, FriedEggStyle, PackedSandwichType } from "@/types";
+
+const PACKED_SANDWICHES: PackedSandwichType[] = [
+  "Vegetable Sandwich",
+  "Egg Sandwich",
+  "Cheese & Tomato Sandwich",
+  "Chicken Sandwich",
+  "Bacon & Cheese Sandwich"
+];
+
+const STARTERS: StarterType[] = [
+  "Mixed Fruit Juice",
+  "Fruit Platter",
+  "Cereal with Milk",
+  "Yoghurt",
+  "Waffles with Treacle",
+  "Cakes",
+  "Buns",
+  "Pastries",
+];
+
+const EGG_STYLES: EggStyle[] = [
+  "Omelet",
+  "Cheese Omelet",
+  "Sri Lankan Omelet",
+  "Scrambled Eggs",
+  "Fried Egg",
+];
+
+const BEVERAGES: BeverageType[] = ["Ceylon Tea", "Coffee"];
+
+const MAINS: MainCourseType[] = [
+  "Chicken Sausages",
+  "Bacon",
+  "Chicken Salami",
+  "Baked Beans",
+  "Bread Toast"
+];
+
+const FRIED_EGG_STYLES: FriedEggStyle[] = [
+  "Sunny-Side Up",
+  "Over Easy",
+  "Over Medium",
+  "Over Hard"
+];
+
+const ROOMS = ["101", "102", "103", "201", "202", "301", "302"];
+
+type GuestOrderDraft = {
+  guestName: string;
+  selectedStarters: StarterType[];
+  selectedMains: MainCourseType[];
+  toastSlices: number;
+  includesButter: boolean;
+  includesJam: boolean;
+  isKidFruitPlatter: boolean;
+  includesEggs: boolean;
+  eggStyle: EggStyle;
+  friedEggStyle: FriedEggStyle;
+  includesBeverage: boolean;
+  beverage: BeverageType;
+  beverageIncludesMilk: boolean;
+  isPackedBreakfast: boolean;
+  packedSandwichChoice: PackedSandwichType | null;
+  dietaryNotes: string;
+};
+
+const defaultGuestOrder = (index: number): GuestOrderDraft => ({
+  guestName: `Guest ${index + 1}`,
+  selectedStarters: [],
+  selectedMains: [],
+  toastSlices: 4,
+  includesButter: true,
+  includesJam: true,
+  isKidFruitPlatter: false,
+  includesEggs: false,
+  eggStyle: "Omelet",
+  friedEggStyle: "Sunny-Side Up",
+  includesBeverage: false,
+  beverage: "Ceylon Tea",
+  beverageIncludesMilk: false,
+  isPackedBreakfast: false,
+  packedSandwichChoice: null,
+  dietaryNotes: "",
+});
+
+export default function GuestMenuPage() {
+  const [step, setStep] = useState(1);
+
+  // Step 1 State
+  const [roomNumber, setRoomNumber] = useState("");
+  const [guestCount, setGuestCount] = useState(2);
+  const [orderType, setOrderType] = useState<'dine-in' | 'packed'>('dine-in');
+  const [breakfastDate, setBreakfastDate] = useState("");
+  const [breakfastTime, setBreakfastTime] = useState("07:30");
+
+  // Driver extras
+  const [driverPackedBreakfasts, setDriverPackedBreakfasts] = useState<number>(0);
+  const [driverBreakfastNotes, setDriverBreakfastNotes] = useState<string>('');
+
+  // Step 2 State
+  const [guestOrders, setGuestOrders] = useState<GuestOrderDraft[]>([]);
+  const [currentGuestIndex, setCurrentGuestIndex] = useState(0);
+
+  // Global State
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const [staffName, setStaffName] = useState<string>("");
+
+  useEffect(() => {
+    const now = new Date();
+    let hours = now.getHours();
+    
+    // Helper to get local date string YYYY-MM-DD
+    const getLocalDateString = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // Auto-roll rule: If past 13:00, set to tomorrow at 07:30
+    if (hours >= 13) {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setBreakfastDate(getLocalDateString(tomorrow));
+      setBreakfastTime("07:30");
+    } else {
+      setBreakfastDate(getLocalDateString(now));
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      setBreakfastTime(`${String(hours).padStart(2, '0')}:${mins}`);
+    }
+
+    const staff = localStorage.getItem("staffName");
+    if (staff) {
+      setStaffName(staff);
+    }
+  }, []);
+
+  const resetForm = () => {
+    setStep(1);
+    setRoomNumber("");
+    setGuestCount(2);
+    setOrderType('dine-in');
+    setGuestOrders([]);
+    setDriverPackedBreakfasts(0);
+    setDriverBreakfastNotes('');
+    setIsSuccess(false);
+  };
+
+  const startOrdering = () => {
+    if (!roomNumber) {
+      setError("Please select a room number.");
+      return;
+    }
+    if (!breakfastDate || !breakfastTime) {
+      setError("Please specify a breakfast date and time.");
+      return;
+    }
+    setError("");
+    setGuestOrders(Array.from({ length: guestCount }, (_, i) => ({
+      ...defaultGuestOrder(i),
+      isPackedBreakfast: orderType === 'packed'
+    })));
+    setCurrentGuestIndex(0);
+    setStep(2);
+  };
+
+  const updateCurrentGuest = (updates: Partial<GuestOrderDraft>) => {
+    const updated = [...guestOrders];
+    updated[currentGuestIndex] = { ...updated[currentGuestIndex], ...updates };
+    setGuestOrders(updated);
+  };
+
+  const toggleStarter = (starter: StarterType) => {
+    const current = guestOrders[currentGuestIndex].selectedStarters;
+    updateCurrentGuest({
+      selectedStarters: current.includes(starter) ? current.filter(s => s !== starter) : [...current, starter]
+    });
+  };
+
+  const toggleMain = (main: MainCourseType) => {
+    const current = guestOrders[currentGuestIndex].selectedMains;
+    updateCurrentGuest({
+      selectedMains: current.includes(main) ? current.filter(m => m !== main) : [...current, main]
+    });
+  };
+
+  const nextGuest = () => {
+    if (!guestOrders[currentGuestIndex].guestName.trim()) {
+      setError("Please provide a name for this guest.");
+      return;
+    }
+    if (guestOrders[currentGuestIndex].isPackedBreakfast && !guestOrders[currentGuestIndex].packedSandwichChoice) {
+      setError("Please select a sandwich for the packed breakfast.");
+      return;
+    }
+    setError("");
+    if (currentGuestIndex < guestCount - 1) {
+      setCurrentGuestIndex(prev => prev + 1);
+      window.scrollTo(0, 0);
+    } else {
+      setStep(3);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const prevGuest = () => {
+    if (currentGuestIndex > 0) {
+      setCurrentGuestIndex(prev => prev - 1);
+      window.scrollTo(0, 0);
+    } else {
+      setStep(1);
+    }
+  };
+
+  const formatOrderForWhatsApp = () => {
+    const combinedTime = `${breakfastDate}T${breakfastTime}`;
+    const timeFormatted = new Date(combinedTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    let text = `*New Breakfast Order*\n`;
+    text += `Room: ${roomNumber}\n`;
+    text += `Time: ${timeFormatted}\n`;
+    text += `Guests: ${guestCount}\n\n`;
+
+    guestOrders.forEach((order, idx) => {
+      text += `*${order.guestName}*\n\n`;
+      
+      if (order.isPackedBreakfast) {
+        text += `[PACKED BREAKFAST]\n`;
+        text += `• ${order.packedSandwichChoice}\n`;
+        text += `• Banana (1), Yoghurt (1), Bottle of Water (1)\n`;
+      } else {
+        text += `STARTERS\n`;
+        if (order.selectedStarters.length > 0) {
+          order.selectedStarters.forEach(s => {
+            if (s === "Fruit Platter" && order.isKidFruitPlatter) {
+              text += `• Fruit Platter (Kid's Portion)\n`;
+            } else {
+              text += `• ${s}\n`;
+            }
+          });
+        } else {
+          text += `_None selected_\n`;
+        }
+        text += `\n`;
+        
+        text += `MAIN COURSE\n`;
+        if (order.selectedMains.length > 0) {
+          order.selectedMains.forEach(m => {
+            if (m === "Bread Toast") {
+              let toastExtras = [];
+              if (order.includesButter) toastExtras.push("Butter");
+              if (order.includesJam) toastExtras.push("Jam");
+              let extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
+              text += `• Toast (${order.toastSlices} slices${extrasString})\n`;
+            } else {
+              text += `• ${m}\n`;
+            }
+          });
+        } else {
+          text += `_No mains selected_\n`;
+        }
+        if (order.includesEggs && order.eggStyle) {
+          let eggText = order.eggStyle;
+          if (order.eggStyle === "Fried Egg" && order.friedEggStyle) {
+            eggText += ` (${order.friedEggStyle})`;
+          }
+          text += `Eggs: *${eggText}*\n`;
+        } else {
+          text += `_No eggs selected_\n`;
+        }
+        text += `\n`;
+        
+        text += `BEVERAGE\n`;
+        if (order.includesBeverage && order.beverage) {
+          text += `*${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}*\n`;
+        } else {
+          text += `_No beverage selected_\n`;
+        }
+      }
+      
+      if (order.dietaryNotes) {
+        text += `\n*Notes*: ${order.dietaryNotes}\n`;
+      }
+      text += `\n`;
+    });
+    
+    if (driverPackedBreakfasts > 0) {
+      text += `[DRIVER PACKED BREAKFASTS]\n`;
+      text += `• Quantity: ${driverPackedBreakfasts}\n`;
+      if (driverBreakfastNotes) {
+        text += `• Notes: ${driverBreakfastNotes}\n`;
+      }
+      text += `\n`;
+    }
+    
+    if (staffName) {
+      const takenTime = new Date().toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+      text += `-------------------\n`;
+      text += `_Order Taken By: ${staffName}_\n`;
+      text += `_Taken At: ${takenTime}_\n`;
+    }
+
+    return `https://wa.me/?text=${encodeURIComponent(text)}`;
+  };
+
+  const submitOrder = async () => {
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const payload = guestOrders.map(go => ({
+        roomNumber,
+        guestName: go.guestName,
+        orderType,
+        driverPackedBreakfasts,
+        driverBreakfastNotes,
+        isPackedBreakfast: go.isPackedBreakfast,
+        packedSandwichChoice: go.isPackedBreakfast ? go.packedSandwichChoice : undefined,
+        starters: go.isPackedBreakfast ? [] : go.selectedStarters,
+        mains: go.isPackedBreakfast ? [] : go.selectedMains,
+        toastSlices: go.isPackedBreakfast ? undefined : go.toastSlices,
+        includesButter: go.isPackedBreakfast ? undefined : go.includesButter,
+        includesJam: go.isPackedBreakfast ? undefined : go.includesJam,
+        isKidFruitPlatter: go.isPackedBreakfast ? undefined : go.isKidFruitPlatter,
+        eggStyle: (!go.isPackedBreakfast && go.includesEggs) ? go.eggStyle : undefined,
+        friedEggStyle: (!go.isPackedBreakfast && go.includesEggs && go.eggStyle === "Fried Egg") ? go.friedEggStyle : undefined,
+        beverage: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverage : undefined,
+        beverageIncludesMilk: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverageIncludesMilk : undefined,
+        dietaryNotes: go.dietaryNotes,
+        breakfastTime: new Date(`${breakfastDate}T${breakfastTime}`).toISOString(),
+        staffName: staffName || "Unknown Staff",
+      }));
+
+      for (const orderPayload of payload) {
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(orderPayload),
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to place order.");
+        }
+      }
+
+      setIsSuccess(true);
+      
+      const waLink = formatOrderForWhatsApp();
+      window.open(waLink, "_blank");
+      resetForm();
+
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--stone-50)] text-center">
+        <div className="bg-white p-10 rounded-2xl shadow-xl max-w-md w-full border border-[var(--stone-200)]">
+          <div className="mb-6 mx-auto w-16 h-16 bg-[var(--accent-gold)] text-white rounded-full flex items-center justify-center text-3xl shadow-md">
+            ✓
+          </div>
+          <h1 className="text-3xl font-light mb-4 text-[var(--stone-900)]">Order Sent!</h1>
+          <p className="text-[var(--stone-800)] mb-8 text-lg font-light leading-relaxed">
+            Your WhatsApp message has been generated. The kitchen has also received your order details for Room {roomNumber}.
+          </p>
+          <button 
+            onClick={() => {
+              setIsSuccess(false);
+              setStep(1);
+            }}
+            className="text-sm font-medium uppercase tracking-widest text-[var(--accent-gold)] hover:text-black transition-colors"
+          >
+            Start New Order
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--stone-50)] py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-[var(--stone-100)]">
+        
+        <div className="bg-[var(--stone-900)] py-12 px-6 rounded-t-3xl text-center relative">
+          {step === 1 && (
+            <Link href="/" className="absolute top-6 left-6 text-white/60 hover:text-white transition-colors text-sm font-medium flex items-center space-x-1">
+              <span>&larr; Home</span>
+            </Link>
+          )}
+          <p className="text-[var(--accent-gold)] text-sm font-bold tracking-widest uppercase mb-3">Good Morning</p>
+          <h1 className="text-3xl md:text-4xl font-light text-white mb-6">Hilldale Retreat</h1>
+          <div className="w-16 h-1 bg-[var(--accent-gold)] mx-auto opacity-70 mb-8"></div>
+          
+          <div className="flex justify-center space-x-2">
+            {[1, 2, 3].map(s => (
+              <div key={s} className={`h-1.5 w-12 rounded-full ${step >= s ? 'bg-[var(--accent-gold)]' : 'bg-[var(--stone-700)]'}`} />
+            ))}
+          </div>
+        </div>
+        
+        <div className="p-8 sm:p-12">
+          {error && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-xl text-sm border border-red-200 mb-8">
+              {error}
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-light text-[var(--stone-900)]">Order Details</h2>
+                <p className="text-[var(--stone-600)] mt-2">Let's set up your breakfast request.</p>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Room Number</label>
+                  <div className="relative">
+                    <select 
+                      value={roomNumber}
+                      onChange={(e) => setRoomNumber(e.target.value)}
+                      className="w-full appearance-none bg-white border border-[var(--stone-200)] rounded-xl py-3 px-4 text-[var(--stone-900)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] focus:border-transparent cursor-pointer shadow-sm"
+                    >
+                      <option value="" disabled>Select a Room</option>
+                      {ROOMS.map(room => (
+                        <option key={room} value={room}>{room}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[var(--stone-800)]">
+                      ▼
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Number of Guests</label>
+                    <div className="flex items-center space-x-4 bg-white border border-[var(--stone-200)] rounded-xl p-2 w-max h-[58px]">
+                      <button 
+                        type="button"
+                        onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--stone-50)] text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors"
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center font-medium text-[var(--stone-900)]">{guestCount}</span>
+                      <button 
+                        type="button"
+                        onClick={() => setGuestCount(prev => Math.min(4, prev + 1))}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--stone-50)] text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Order Type</label>
+                    <div className="flex bg-[var(--stone-100)] rounded-xl p-1 h-[58px]">
+                      <button
+                        onClick={() => setOrderType('dine-in')}
+                        className={`flex-1 text-sm font-medium rounded-lg transition-colors ${orderType === 'dine-in' ? 'bg-white shadow-sm text-[var(--stone-900)]' : 'text-[var(--stone-500)] hover:text-[var(--stone-700)]'}`}
+                      >
+                        Dine-In
+                      </button>
+                      <button
+                        onClick={() => setOrderType('packed')}
+                        className={`flex-1 text-sm font-medium rounded-lg transition-colors ${orderType === 'packed' ? 'bg-white shadow-sm text-[var(--stone-900)]' : 'text-[var(--stone-500)] hover:text-[var(--stone-700)]'}`}
+                      >
+                        Packed Breakfast
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Breakfast Date</label>
+                    <input 
+                      type="date" 
+                      value={breakfastDate}
+                      onChange={(e) => setBreakfastDate(e.target.value)}
+                      className="w-full bg-white border border-[var(--stone-200)] rounded-xl py-3 px-4 text-[var(--stone-900)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] focus:border-transparent shadow-sm cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Breakfast Time</label>
+                    <input 
+                      type="time" 
+                      value={breakfastTime}
+                      onChange={(e) => setBreakfastTime(e.target.value)}
+                      className="w-full bg-white border border-[var(--stone-200)] rounded-xl py-3 px-4 text-[var(--stone-900)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] focus:border-transparent shadow-sm cursor-pointer"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-[var(--stone-500)] mt-2">
+                  Orders placed after 1:00 PM automatically default to 7:30 AM tomorrow.
+                </p>
+              </div>
+
+              <button 
+                onClick={startOrdering}
+                className="w-full py-4 mt-8 rounded-xl bg-[var(--stone-900)] text-white font-medium tracking-widest uppercase transition-all shadow-md hover:bg-[var(--stone-800)] hover:shadow-lg"
+              >
+                Continue to Menu
+              </button>
+            </div>
+          )}
+
+          {step === 2 && guestOrders[currentGuestIndex] && (() => {
+            const currentGuest = guestOrders[currentGuestIndex];
+            return (
+              <div className="space-y-10 animate-in fade-in slide-in-from-right-4">
+                <div className="flex justify-between items-center border-b border-[var(--stone-200)] pb-4">
+                  <h2 className="text-2xl font-light text-[var(--stone-900)]">Guest {currentGuestIndex + 1} of {guestCount}</h2>
+                  <button onClick={prevGuest} className="text-sm font-medium text-[var(--stone-500)] hover:text-[var(--stone-900)] transition-colors">
+                    &larr; Back
+                  </button>
+                </div>
+
+                <div className="space-y-8">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Guest Name</label>
+                    <input 
+                      type="text" 
+                      value={currentGuest.guestName}
+                      onChange={(e) => updateCurrentGuest({ guestName: e.target.value })}
+                      className="w-full border-b border-[var(--stone-200)] pb-2 focus:border-[var(--accent-gold)] focus:outline-none bg-transparent transition-colors text-lg"
+                      placeholder={`Guest ${currentGuestIndex + 1}`}
+                    />
+                  </div>
+
+                  {!currentGuest.isPackedBreakfast ? (
+                    <>
+                      <section className="space-y-4">
+                    <div className="flex justify-between items-end">
+                      <h3 className="text-sm font-semibold text-[var(--stone-900)] uppercase tracking-widest">Starters</h3>
+                      <button
+                        onClick={() => {
+                          const allSelected = currentGuest.selectedStarters.length === STARTERS.length;
+                          updateCurrentGuest({ selectedStarters: allSelected ? [] : [...STARTERS] });
+                        }}
+                        className="text-xs text-[var(--accent-gold)] hover:text-[var(--stone-900)] transition-colors font-medium"
+                      >
+                        {currentGuest.selectedStarters.length === STARTERS.length ? "Deselect All" : "Select All"}
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-3">
+                      {STARTERS.map((starter) => (
+                        <div key={starter} className="flex flex-col">
+                          <label onClick={() => toggleStarter(starter)} className="flex items-center space-x-3 cursor-pointer group">
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.selectedStarters.includes(starter) ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)] group-hover:border-[var(--accent-gold)]'}`}>
+                              {currentGuest.selectedStarters.includes(starter) && <span className="text-white text-xs">✓</span>}
+                            </div>
+                            <span className="text-[var(--stone-900)] text-sm">{starter}</span>
+                          </label>
+
+                          {starter === "Fruit Platter" && currentGuest.selectedStarters.includes("Fruit Platter") && (
+                            <div className="mt-2 pl-8 border-l-2 border-[var(--stone-100)] ml-2 animate-in fade-in slide-in-from-top-2">
+                              <label className="flex items-center space-x-3 cursor-pointer group">
+                                <div onClick={() => updateCurrentGuest({ isKidFruitPlatter: !currentGuest.isKidFruitPlatter })} className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${currentGuest.isKidFruitPlatter ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)] group-hover:border-[var(--accent-gold)]'}`}>
+                                  {currentGuest.isKidFruitPlatter && <span className="text-white text-[10px]">✓</span>}
+                                </div>
+                                <span className="text-[var(--stone-800)] text-sm" onClick={() => updateCurrentGuest({ isKidFruitPlatter: !currentGuest.isKidFruitPlatter })}>Kid's Portion</span>
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <div className="flex justify-between items-end">
+                      <h3 className="text-sm font-semibold text-[var(--stone-900)] uppercase tracking-widest">Main Course</h3>
+                      <button
+                        onClick={() => {
+                          const allSelected = currentGuest.selectedMains.length === MAINS.length;
+                          updateCurrentGuest({ selectedMains: allSelected ? [] : [...MAINS] });
+                        }}
+                        className="text-xs text-[var(--accent-gold)] hover:text-[var(--stone-900)] transition-colors font-medium"
+                      >
+                        {currentGuest.selectedMains.length === MAINS.length ? "Deselect All" : "Select All"}
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                      {MAINS.map((main) => (
+                        <label key={main} onClick={() => toggleMain(main)} className="flex items-center space-x-3 cursor-pointer group">
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.selectedMains.includes(main) ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)] group-hover:border-[var(--accent-gold)]'}`}>
+                            {currentGuest.selectedMains.includes(main) && <span className="text-white text-xs">✓</span>}
+                          </div>
+                          <span className="text-[var(--stone-900)] text-sm">{main}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    {currentGuest.selectedMains.includes("Bread Toast") && (
+                      <div className="bg-[var(--stone-50)] p-4 rounded-xl border border-[var(--stone-200)] mb-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="text-sm font-medium text-[var(--stone-800)]">Slices</label>
+                          <div className="flex items-center space-x-3 bg-white rounded-lg p-1 border border-[var(--stone-100)]">
+                            <button 
+                              type="button"
+                              onClick={() => updateCurrentGuest({ toastSlices: Math.max(1, currentGuest.toastSlices - 1) })}
+                              className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--stone-600)] shadow-sm hover:text-[var(--stone-900)]"
+                            >
+                              -
+                            </button>
+                            <span className="w-6 text-center font-medium">{currentGuest.toastSlices}</span>
+                            <button 
+                              type="button"
+                              onClick={() => updateCurrentGuest({ toastSlices: Math.min(10, currentGuest.toastSlices + 1) })}
+                              className="w-8 h-8 rounded-md flex items-center justify-center text-[var(--stone-600)] shadow-sm hover:text-[var(--stone-900)]"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-6 border-t border-[var(--stone-200)] pt-3">
+                          <label className="flex items-center space-x-2 cursor-pointer group">
+                            <div onClick={() => updateCurrentGuest({ includesButter: !currentGuest.includesButter })} className={`w-4 h-4 rounded border flex items-center justify-center ${currentGuest.includesButter ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-300)]'}`}>
+                              {currentGuest.includesButter && <span className="text-white text-[10px]">✓</span>}
+                            </div>
+                            <span className="text-sm text-[var(--stone-900)]" onClick={() => updateCurrentGuest({ includesButter: !currentGuest.includesButter })}>Butter</span>
+                          </label>
+                          
+                          <label className="flex items-center space-x-2 cursor-pointer group">
+                            <div onClick={() => updateCurrentGuest({ includesJam: !currentGuest.includesJam })} className={`w-4 h-4 rounded border flex items-center justify-center ${currentGuest.includesJam ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-300)]'}`}>
+                              {currentGuest.includesJam && <span className="text-white text-[10px]">✓</span>}
+                            </div>
+                            <span className="text-sm text-[var(--stone-900)]" onClick={() => updateCurrentGuest({ includesJam: !currentGuest.includesJam })}>Jam</span>
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="flex items-center space-x-3 cursor-pointer group mb-3">
+                        <div onClick={() => updateCurrentGuest({ includesEggs: !currentGuest.includesEggs })} className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.includesEggs ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)]'}`}>
+                          {currentGuest.includesEggs && <span className="text-white text-xs">✓</span>}
+                        </div>
+                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesEggs: !currentGuest.includesEggs })}>Include Eggs</span>
+                      </label>
+
+                      {currentGuest.includesEggs && (
+                        <div className="pl-8 border-l-2 border-[var(--stone-100)] ml-2">
+                          <select 
+                            value={currentGuest.eggStyle}
+                            onChange={(e) => updateCurrentGuest({ eggStyle: e.target.value as EggStyle })}
+                            className="w-full appearance-none bg-white border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] mb-3 cursor-pointer"
+                          >
+                            {EGG_STYLES.map(style => <option key={style} value={style}>{style}</option>)}
+                          </select>
+
+                          {currentGuest.eggStyle === "Fried Egg" && (
+                            <select 
+                              value={currentGuest.friedEggStyle}
+                              onChange={(e) => updateCurrentGuest({ friedEggStyle: e.target.value as FriedEggStyle })}
+                              className="w-full appearance-none bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] cursor-pointer"
+                            >
+                              {FRIED_EGG_STYLES.map(style => <option key={style} value={style}>{style}</option>)}
+                            </select>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h3 className="text-sm font-semibold text-[var(--stone-900)] uppercase tracking-widest">Beverage</h3>
+                    <div>
+                      <label className="flex items-center space-x-3 cursor-pointer group mb-3">
+                        <div onClick={() => updateCurrentGuest({ includesBeverage: !currentGuest.includesBeverage })} className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.includesBeverage ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)]'}`}>
+                          {currentGuest.includesBeverage && <span className="text-white text-xs">✓</span>}
+                        </div>
+                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesBeverage: !currentGuest.includesBeverage })}>Include Beverage</span>
+                      </label>
+
+                      {currentGuest.includesBeverage && (
+                        <div className="pl-8 border-l-2 border-[var(--stone-100)] ml-2">
+                          <select 
+                            value={currentGuest.beverage}
+                            onChange={(e) => updateCurrentGuest({ beverage: e.target.value as BeverageType })}
+                            className="w-full appearance-none bg-white border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] mb-3 cursor-pointer"
+                          >
+                            {BEVERAGES.map(bev => <option key={bev} value={bev}>{bev}</option>)}
+                          </select>
+                          
+                          <label className="flex items-center space-x-3 cursor-pointer group">
+                            <div onClick={() => updateCurrentGuest({ beverageIncludesMilk: !currentGuest.beverageIncludesMilk })} className={`w-4 h-4 rounded border flex items-center justify-center ${currentGuest.beverageIncludesMilk ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-300)]'}`}>
+                              {currentGuest.beverageIncludesMilk && <span className="text-white text-[10px]">✓</span>}
+                            </div>
+                            <span className="text-sm text-[var(--stone-900)]" onClick={() => updateCurrentGuest({ beverageIncludesMilk: !currentGuest.beverageIncludesMilk })}>With Milk</span>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                  </>
+                  ) : (
+                    <section className="space-y-6 animate-in fade-in slide-in-from-right-2">
+                      <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                        <p className="text-sm text-blue-800 flex items-start">
+                          <span className="mr-2">ℹ️</span>
+                          <span>Each packed breakfast automatically includes: <br/><strong>1x Banana, 1x Yoghurt, 1x Bottle of Water</strong></span>
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-semibold text-[var(--stone-900)] uppercase tracking-widest mb-4">Choose 1 Sandwich</h3>
+                        <div className="space-y-3">
+                          {PACKED_SANDWICHES.map(sandwich => (
+                            <label key={sandwich} onClick={() => updateCurrentGuest({ packedSandwichChoice: sandwich })} className="flex items-center space-x-3 cursor-pointer group">
+                              <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${currentGuest.packedSandwichChoice === sandwich ? 'border-[var(--accent-gold)]' : 'border-[var(--stone-300)]'}`}>
+                                {currentGuest.packedSandwichChoice === sandwich && <div className="w-3 h-3 rounded-full bg-[var(--accent-gold)]"></div>}
+                              </div>
+                              <span className="text-[var(--stone-900)] text-sm">{sandwich}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
+                  )}
+
+                  <section>
+                    <h3 className="text-sm font-semibold text-[var(--stone-900)] uppercase tracking-widest mb-2">Dietary Notes</h3>
+                    <textarea 
+                      value={currentGuest.dietaryNotes}
+                      onChange={(e) => updateCurrentGuest({ dietaryNotes: e.target.value })}
+                      rows={2}
+                      className="w-full bg-white border border-[var(--stone-200)] rounded-xl py-3 px-4 text-[var(--stone-900)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] resize-none"
+                      placeholder="Any allergies or special requests?"
+                    />
+                  </section>
+                </div>
+
+                <button 
+                  onClick={nextGuest}
+                  className="w-full py-4 mt-8 rounded-xl bg-[var(--stone-900)] text-white font-medium tracking-widest uppercase transition-all shadow-md hover:bg-[var(--stone-800)] hover:shadow-lg"
+                >
+                  {currentGuestIndex < guestCount - 1 ? 'Next Guest' : 'Review Order'}
+                </button>
+              </div>
+            );
+          })()}
+
+          {step === 3 && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4">
+              <div className="flex justify-between items-center border-b border-[var(--stone-200)] pb-4">
+                <div>
+                  <h2 className="text-2xl font-light text-[var(--stone-900)]">Order Summary</h2>
+                  <p className="text-[var(--stone-600)] mt-1">Room {roomNumber} • {new Date(`${breakfastDate}T${breakfastTime}`).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                </div>
+                <button onClick={() => setStep(2)} className="text-sm font-medium text-[var(--stone-500)] hover:text-[var(--stone-900)] transition-colors">
+                  &larr; Edit
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {guestOrders.map((order, idx) => (
+                  <div key={idx} className="bg-[var(--stone-50)] rounded-2xl p-5 border border-[var(--stone-100)] relative group">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-semibold text-[var(--stone-900)] text-lg">{order.guestName}</h3>
+                      <button 
+                        onClick={() => {
+                          setCurrentGuestIndex(idx);
+                          setStep(2);
+                        }}
+                        className="text-sm text-[var(--accent-gold)] hover:text-[var(--stone-900)] font-medium transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex items-center space-x-1"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        <span>Edit</span>
+                      </button>
+                    </div>
+                    
+                    <div className="text-sm space-y-2 text-[var(--stone-700)]">
+                      {order.isPackedBreakfast ? (
+                        <>
+                          <p><span className="font-medium text-[var(--stone-900)]">Type:</span> Packed Breakfast</p>
+                          <p><span className="font-medium text-[var(--stone-900)]">Sandwich:</span> {order.packedSandwichChoice}</p>
+                          <p className="text-xs text-[var(--stone-500)]">+ Banana, Yoghurt, Water</p>
+                        </>
+                      ) : (
+                        <>
+                          {order.selectedStarters.length > 0 && (
+                            <p><span className="font-medium text-[var(--stone-900)]">Starters:</span> {order.selectedStarters.map(s => s === "Fruit Platter" && order.isKidFruitPlatter ? "Fruit Platter (Kid's Portion)" : s).join(', ')}</p>
+                          )}
+                          
+                          {order.selectedMains.length > 0 && (
+                            <p><span className="font-medium text-[var(--stone-900)]">Mains:</span> {order.selectedMains.map(m => m === 'Bread Toast' ? `Toast (${order.toastSlices} slices)` : m).join(', ')}</p>
+                          )}
+                          
+                          {order.includesEggs && (
+                            <p><span className="font-medium text-[var(--stone-900)]">Eggs:</span> {order.eggStyle} {order.eggStyle === "Fried Egg" && `(${order.friedEggStyle})`}</p>
+                          )}
+                          
+                          {order.includesBeverage && (
+                            <p><span className="font-medium text-[var(--stone-900)]">Beverage:</span> {order.beverage} {order.beverageIncludesMilk ? '(With Milk)' : '(Black)'}</p>
+                          )}
+                        </>
+                      )}
+
+                      {order.dietaryNotes && (
+                        <p className="text-red-700 mt-2 bg-red-50 p-2 rounded"><span className="font-medium">Note:</span> {order.dietaryNotes}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] p-6 space-y-4">
+                <h3 className="text-lg font-semibold text-[var(--stone-900)] border-b border-[var(--stone-100)] pb-3">Driver Packed Breakfasts</h3>
+                <p className="text-sm text-[var(--stone-500)]">Add any packed breakfasts needed for drivers (1 Sandwich + Grab-and-Go Bag each).</p>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl p-2 w-max">
+                    <button 
+                      type="button"
+                      onClick={() => setDriverPackedBreakfasts(prev => Math.max(0, prev - 1))}
+                      className="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors shadow-sm"
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center font-medium text-[var(--stone-900)]">{driverPackedBreakfasts}</span>
+                    <button 
+                      type="button"
+                      onClick={() => setDriverPackedBreakfasts(prev => prev + 1)}
+                      className="w-10 h-10 rounded-lg flex items-center justify-center bg-white text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors shadow-sm"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                {driverPackedBreakfasts > 0 && (
+                  <textarea
+                    value={driverBreakfastNotes}
+                    onChange={(e) => setDriverBreakfastNotes(e.target.value)}
+                    placeholder="Notes (e.g. 1 Chicken, 1 Cheese)"
+                    className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-3 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                    rows={2}
+                  />
+                )}
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-xl border border-green-200 text-sm text-green-800">
+                Submitting will send this order to the kitchen and open WhatsApp so you can notify the staff group.
+              </div>
+
+              <button 
+                onClick={submitOrder}
+                disabled={isSubmitting}
+                className={`w-full flex items-center justify-center py-4 mt-8 rounded-xl text-white font-medium tracking-widest uppercase transition-all shadow-md hover:shadow-lg ${
+                  isSubmitting ? 'bg-[var(--stone-400)] cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {isSubmitting ? 'Processing...' : 'Confirm & Send to WhatsApp'}
+              </button>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
