@@ -20,7 +20,8 @@ export type EggStyle =
   | "Cheese Omelet"
   | "Sri Lankan Omelet"
   | "Scrambled Eggs"
-  | "Fried Egg";
+  | "Fried Egg"
+  | "Boiled Eggs";
 
 export type FriedEggStyle = 
   | "Sunny-Side Up"

@@ -30,6 +30,7 @@ const EGG_STYLES: EggStyle[] = [
   "Sri Lankan Omelet",
   "Scrambled Eggs",
   "Fried Egg",
+  "Boiled Eggs",
 ];
 
 const BEVERAGES: BeverageType[] = ["Ceylon Tea", "Coffee"];
