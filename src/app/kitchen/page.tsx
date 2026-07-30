@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Order, OrderStatus } from "@/types";
-
+import { db } from "@/lib/firebase";
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, getDocs, where } from "firebase/firestore";
 const ROOM_NUMBERS = ["101", "102", "103", "201", "202", "301", "302"];
 const DEFAULT_STARTERS: Record<string, number> = {
   "Buns": 1,
@@ -22,23 +23,40 @@ export default function KitchenDashboard() {
   const [occupancy, setOccupancy] = useState<Record<string, { occupied: boolean; guests: number; kids?: number }>>({});
   const [extraMeals, setExtraMeals] = useState<{ drivers: number; staff: number }>({ drivers: 0, staff: 0 });
 
-  const fetchOrders = async () => {
-    try {
-      const res = await fetch("/api/orders");
-      const data = await res.json();
-      if (data.orders) {
-        setOrders(data.orders);
-      }
-    } catch (err) {
-      console.error("Failed to fetch orders", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 5000); // Poll every 5s
+    const q = query(collection(db, "orders"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedOrders: Order[] = [];
+      const now = new Date();
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as Omit<Order, 'id'>;
+        const bTime = new Date(data.breakfastTime);
+        const createdTime = new Date(data.createdAt);
+        
+        const cutoffBreakfast = new Date(bTime);
+        cutoffBreakfast.setHours(14, 0, 0, 0);
+
+        const cutoffCreated = new Date(createdTime);
+        if (createdTime.getHours() >= 14) {
+          cutoffCreated.setDate(cutoffCreated.getDate() + 1);
+        }
+        cutoffCreated.setHours(14, 0, 0, 0);
+        
+        const actualCutoff = cutoffBreakfast > cutoffCreated ? cutoffBreakfast : cutoffCreated;
+        
+        if (now > actualCutoff) {
+          // Delete expired order
+          deleteDoc(doc(db, "orders", docSnap.id)).catch(console.error);
+        } else {
+          fetchedOrders.push({ id: docSnap.id, ...data });
+        }
+      });
+      setOrders(fetchedOrders);
+      setLoading(false);
+    }, (error) => {
+      console.error("Failed to fetch orders", error);
+      setLoading(false);
+    });
     
     // Load occupancy
     const stored = localStorage.getItem("kitchenOccupancy");
@@ -62,7 +80,7 @@ export default function KitchenDashboard() {
       } catch (e) {}
     }
     
-    return () => clearInterval(interval);
+    return () => unsubscribe();
   }, []);
 
   const updateOccupancy = (room: string, field: 'occupied' | 'guests' | 'kids', value: any) => {
@@ -196,14 +214,7 @@ export default function KitchenDashboard() {
 
   const updateStatus = async (id: string, newStatus: OrderStatus) => {
     try {
-      const res = await fetch("/api/orders", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status: newStatus }),
-      });
-      if (res.ok) {
-        fetchOrders();
-      }
+      await updateDoc(doc(db, "orders", id), { status: newStatus });
     } catch (err) {
       console.error("Failed to update order", err);
     }
@@ -583,8 +594,10 @@ export default function KitchenDashboard() {
                         <button 
                           onClick={async () => {
                             if (confirm(`Are you sure you want to clear all orders for Room ${roomNumber}?`)) {
-                              await fetch(`/api/orders?roomNumber=${roomNumber}`, { method: 'DELETE' });
-                              fetchOrders();
+                              const q = query(collection(db, "orders"), where("roomNumber", "==", roomNumber));
+                              const querySnapshot = await getDocs(q);
+                              const deletePromises = querySnapshot.docs.map(docSnap => deleteDoc(doc(db, "orders", docSnap.id)));
+                              await Promise.all(deletePromises);
                             }
                           }}
                           className="p-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors"

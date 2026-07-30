@@ -111,6 +111,7 @@ export default function GuestMenuPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [waLinkUrl, setWaLinkUrl] = useState("");
   const [staffName, setStaffName] = useState<string>("");
 
   useEffect(() => {
@@ -151,7 +152,6 @@ export default function GuestMenuPage() {
     setGuestOrders([]);
     setDriverPackedBreakfasts(0);
     setDriverBreakfastNotes('');
-    setIsSuccess(false);
   };
 
   const startOrdering = () => {
@@ -352,7 +352,7 @@ export default function GuestMenuPage() {
       setIsSuccess(true);
       
       const waLink = formatOrderForWhatsApp();
-      window.open(waLink, "_blank");
+      setWaLinkUrl(waLink);
       resetForm();
 
     } catch (err: any) {
@@ -371,17 +371,30 @@ export default function GuestMenuPage() {
           </div>
           <h1 className="text-3xl font-light mb-4 text-[var(--stone-900)]">Order Sent!</h1>
           <p className="text-[var(--stone-800)] mb-8 text-lg font-light leading-relaxed">
-            Your WhatsApp message has been generated. The kitchen has also received your order details for Room {roomNumber}.
+            Your order details for Room {roomNumber} have been saved directly to the Kitchen Dashboard.
           </p>
-          <button 
-            onClick={() => {
-              setIsSuccess(false);
-              setStep(1);
-            }}
-            className="text-sm font-medium uppercase tracking-widest text-[var(--accent-gold)] hover:text-black transition-colors"
-          >
-            Start New Order
-          </button>
+          <div className="flex flex-col space-y-3">
+            <a 
+              href={waLinkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center px-8 py-3 bg-green-600 text-white rounded-xl font-medium tracking-wide shadow-md hover:bg-green-700 transition-all"
+            >
+              Open WhatsApp Message
+            </a>
+            <button 
+              onClick={() => {
+                setIsSuccess(false);
+                setStep(1);
+              }}
+              className="w-full px-8 py-3 bg-[var(--stone-900)] text-white rounded-xl font-medium tracking-wide shadow-md hover:bg-[var(--stone-800)] transition-all"
+            >
+              Submit Another Order
+            </button>
+            <Link href="/" className="w-full px-8 py-3 bg-white text-[var(--stone-900)] border border-[var(--stone-200)] rounded-xl font-medium tracking-wide shadow-sm hover:bg-[var(--stone-50)] transition-all flex items-center justify-center">
+              Back to Home Page
+            </Link>
+          </div>
         </div>
       </div>
     );
