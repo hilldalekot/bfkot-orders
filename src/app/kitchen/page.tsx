@@ -304,11 +304,9 @@ export default function KitchenDashboard() {
       });
     }
 
-    if (extraMeals.drivers > 0 || extraMeals.staff > 0) {
-      text += `\n*EXTRA MEALS*\n`;
-      if (extraMeals.drivers > 0) text += `• Driver Meals: *${extraMeals.drivers}*\n`;
-      if (extraMeals.staff > 0) text += `• Staff Meals: *${extraMeals.staff}*\n`;
-    }
+    text += `\n*EXTRA MEALS*\n`;
+    text += `• Driver Meals: *${extraMeals.drivers}*\n`;
+    text += `• Staff Meals: *${extraMeals.staff}*\n`;
     
     text += `\n_Includes actual orders + default menu for occupied rooms without orders._`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
