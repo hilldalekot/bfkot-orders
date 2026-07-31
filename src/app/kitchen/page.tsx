@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Order, OrderStatus } from "@/types";
 import { db } from "@/lib/firebase";
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, getDocs, where } from "firebase/firestore";
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, getDocs, getDoc, where } from "firebase/firestore";
 const ROOM_NUMBERS = ["101", "102", "103", "201", "202", "301", "302"];
 const DEFAULT_STARTERS: Record<string, number> = {
   "Buns": 1,
@@ -726,14 +726,27 @@ export default function KitchenDashboard() {
 
                         <button 
                           onClick={async () => {
-                            const enteredPin = window.prompt("Enter PIN to delete orders:");
-                            if (enteredPin === "1234") {
-                              if (confirm(`Are you sure you want to clear these orders for Room ${roomNumber}?`)) {
-                                const deletePromises = roomOrders.map(o => deleteDoc(doc(db, "orders", o.id)));
-                                await Promise.all(deletePromises);
+                            const staffName = localStorage.getItem("staffName");
+                            if (!staffName) {
+                              alert("You must be logged in to delete orders.");
+                              return;
+                            }
+                            const enteredPin = window.prompt(`Enter PIN for ${staffName} to delete orders:`);
+                            if (enteredPin === null) return;
+                            
+                            try {
+                              const staffDoc = await getDoc(doc(db, "staff", staffName.toLowerCase()));
+                              if (staffDoc.exists() && staffDoc.data().pin === enteredPin) {
+                                if (confirm(`Are you sure you want to clear these orders for Room ${roomNumber}?`)) {
+                                  const deletePromises = roomOrders.map(o => deleteDoc(doc(db, "orders", o.id)));
+                                  await Promise.all(deletePromises);
+                                }
+                              } else {
+                                alert("Incorrect PIN");
                               }
-                            } else if (enteredPin !== null) {
-                              alert("Incorrect PIN");
+                            } catch (err) {
+                              console.error("Error verifying PIN", err);
+                              alert("Error verifying PIN");
                             }
                           }}
                           className="p-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors"
