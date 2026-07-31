@@ -72,6 +72,7 @@ export interface Order {
   beverageIncludesMilk?: boolean;
   dietaryNotes?: string;
   sriLankanNotes?: string;
+  eggNotes?: string;
   breakfastTime: string;
   status: OrderStatus;
   createdAt: string;

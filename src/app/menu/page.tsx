@@ -385,6 +385,8 @@ export default function GuestMenuPage() {
         friedEggStyle: (!go.isPackedBreakfast && go.includesEggs && go.eggStyle === "Fried Egg") ? go.friedEggStyle : undefined,
         beverage: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverage : undefined,
         beverageIncludesMilk: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverageIncludesMilk : undefined,
+        sriLankanNotes: (!go.isPackedBreakfast && go.includesSriLankanMeals) ? go.sriLankanNotes : undefined,
+        eggNotes: (!go.isPackedBreakfast && go.includesEggs) ? go.eggNotes : undefined,
         dietaryNotes: go.dietaryNotes,
         breakfastTime: new Date(`${breakfastDate}T${breakfastTime}`).toISOString(),
         staffName: staffName || "Unknown Staff",
