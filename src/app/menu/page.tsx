@@ -72,6 +72,7 @@ type GuestOrderDraft = {
   includesJam: boolean;
   isKidFruitPlatter: boolean;
   includesSriLankanMeals: boolean;
+  sriLankanNotes: string;
   includesEggs: boolean;
   eggStyle: EggStyle;
   friedEggStyle: FriedEggStyle;
@@ -93,6 +94,7 @@ const defaultGuestOrder = (index: number): GuestOrderDraft => ({
   includesJam: true,
   isKidFruitPlatter: false,
   includesSriLankanMeals: false,
+  sriLankanNotes: "",
   includesEggs: false,
   eggStyle: "Omelet",
   friedEggStyle: "Sunny-Side Up",
@@ -294,6 +296,9 @@ export default function GuestMenuPage() {
               eggText += ` - ${order.eggNotes}`;
             }
             text += `Eggs: *${eggText}*\n`;
+          }
+          if (order.includesSriLankanMeals && order.sriLankanNotes) {
+            text += `Sri Lankan Note: ${order.sriLankanNotes}\n`;
           }
           text += `\n`;
         }
@@ -714,12 +719,12 @@ export default function GuestMenuPage() {
                         <div onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })} className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.includesSriLankanMeals ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)]'}`}>
                           {currentGuest.includesSriLankanMeals && <span className="text-white text-xs">✓</span>}
                         </div>
-                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })}>Sri Lankan Meals</span>
+                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })}>Sri Lankan Meals <span className="text-[var(--stone-500)] font-normal text-xs ml-1">(Only Pre Order 8 hours)</span></span>
                       </label>
 
                       {currentGuest.includesSriLankanMeals && (
                         <div className="pl-8 border-l-2 border-[var(--stone-100)] ml-2 mb-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                             {SRI_LANKAN_MAINS.map((main) => (
                               <label key={main} onClick={() => toggleMain(main)} className="flex items-center space-x-3 cursor-pointer group">
                                 <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.selectedMains.includes(main) ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)] group-hover:border-[var(--accent-gold)]'}`}>
@@ -729,6 +734,13 @@ export default function GuestMenuPage() {
                               </label>
                             ))}
                           </div>
+                          <input 
+                            type="text"
+                            placeholder="Any notes for Sri Lankan meals?"
+                            value={currentGuest.sriLankanNotes}
+                            onChange={(e) => updateCurrentGuest({ sriLankanNotes: e.target.value })}
+                            className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                          />
                         </div>
                       )}
                     </div>

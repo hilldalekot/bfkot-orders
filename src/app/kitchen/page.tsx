@@ -313,6 +313,9 @@ export default function KitchenDashboard() {
           }
           text += `Eggs: *${eggText}*\n`;
         }
+        if (order.sriLankanNotes) {
+          text += `Sri Lankan Note: ${order.sriLankanNotes}\n`;
+        }
         text += `\n`;
         
         text += `BEVERAGE\n`;
@@ -771,6 +774,11 @@ export default function KitchenDashboard() {
                                       {order.eggStyle === "Fried Egg" && order.friedEggStyle && (
                                         <span className="font-semibold"> ({order.friedEggStyle})</span>
                                       )}
+                                    </p>
+                                  )}
+                                  {order.sriLankanNotes && (
+                                    <p className="text-sm text-[var(--stone-900)] mt-2">
+                                      Sri Lankan Note: <span className="font-semibold">{order.sriLankanNotes}</span>
                                     </p>
                                   )}
                                 </div>
