@@ -953,7 +953,10 @@ export default function GuestMenuPage() {
                       )}
 
                       {order.dietaryNotes && (
-                        <p className="text-red-700 mt-2 bg-red-50 p-2 rounded"><span className="font-medium">Note:</span> {order.dietaryNotes}</p>
+                        <p className="text-red-700 mt-2 bg-red-50 p-2 rounded"><span className="font-medium">Dietary Note:</span> {order.dietaryNotes}</p>
+                      )}
+                      {order.sriLankanNotes && (
+                        <p className="text-amber-800 mt-2 bg-amber-50 p-2 rounded"><span className="font-medium">SL Meals Note:</span> {order.sriLankanNotes}</p>
                       )}
                     </div>
                   </div>

@@ -115,6 +115,7 @@ export default function KitchenDashboard() {
     const starterCounts: Record<string, number> = {};
     const packedCounts: Record<string, number> = {};
     const slMainsCounts: Record<string, number> = {};
+    const slNotesList: string[] = [];
     let packedBananas = 0;
     let packedYoghurts = 0;
     let packedWaters = 0;
@@ -156,6 +157,9 @@ export default function KitchenDashboard() {
                 }
               });
             }
+            if (order.sriLankanNotes) {
+              slNotesList.push(`Room ${room} (${order.guestName}): ${order.sriLankanNotes}`);
+            }
           }
         });
       } else if (roomOcc?.occupied) {
@@ -173,11 +177,11 @@ export default function KitchenDashboard() {
       }
     });
 
-    return { starters: starterCounts, packed: packedCounts, slMains: slMainsCounts, packedBananas, packedYoghurts, packedWaters, driverPacked: driverPackedCount };
+    return { starters: starterCounts, packed: packedCounts, slMains: slMainsCounts, slNotesList, packedBananas, packedYoghurts, packedWaters, driverPacked: driverPackedCount };
   };
 
   const shareSummaryWhatsApp = () => {
-    const { starters, packed, slMains, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
+    const { starters, packed, slMains, slNotesList, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
     let text = `*Kitchen Production Summary*\n_Date: ${new Date().toLocaleDateString()}_\n\n`;
     
     text += `*STARTERS (Dine-In)*\n`;
@@ -191,10 +195,13 @@ export default function KitchenDashboard() {
     }
 
     const slMainsKeys = Object.keys(slMains).sort();
-    if (slMainsKeys.length > 0) {
+    if (slMainsKeys.length > 0 || slNotesList.length > 0) {
       text += `\n*SRI LANKAN MAINS (Dine-In)*\n`;
       slMainsKeys.forEach(k => {
         text += `• ${k}: *${slMains[k]}*\n`;
+      });
+      slNotesList.forEach(note => {
+        text += `• _${note}_\n`;
       });
     }
     
@@ -620,8 +627,9 @@ export default function KitchenDashboard() {
                 
                 <div className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] overflow-hidden">
                   {(() => {
-                    const { starters, packed, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
+                    const { starters, packed, slMains, slNotesList, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
                     const starterKeys = Object.keys(starters).sort();
+                    const slMainsKeys = Object.keys(slMains).sort();
                     const packedKeys = Object.keys(packed).sort();
                     
                     return (
@@ -643,6 +651,30 @@ export default function KitchenDashboard() {
                               </li>
                             ))}
                           </ul>
+                        )}
+
+                        {/* Sri Lankan Mains */}
+                        {(slMainsKeys.length > 0 || slNotesList.length > 0) && (
+                          <>
+                            <div className="p-4 bg-[var(--stone-900)] text-white mt-4 border-t border-[var(--stone-200)]">
+                              <h4 className="font-medium text-sm tracking-widest uppercase text-[var(--accent-gold)]">Sri Lankan Mains (Dine-In)</h4>
+                            </div>
+                            <ul className="divide-y divide-[var(--stone-100)]">
+                              {slMainsKeys.map(k => (
+                                <li key={k} className="px-6 py-4 flex justify-between items-center hover:bg-[var(--stone-50)] transition-colors">
+                                  <span className="font-medium text-[var(--stone-900)]">{k}</span>
+                                  <span className="bg-[var(--accent-gold)] text-[var(--stone-900)] text-sm font-bold w-10 h-10 rounded-full flex items-center justify-center">
+                                    {slMains[k]}
+                                  </span>
+                                </li>
+                              ))}
+                              {slNotesList.map((note, idx) => (
+                                <li key={idx} className="px-6 py-4 flex flex-col justify-center hover:bg-[var(--stone-50)] transition-colors">
+                                  <span className="font-medium text-[var(--stone-900)] italic">{note}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </>
                         )}
 
                         {/* Packed Breakfasts */}
