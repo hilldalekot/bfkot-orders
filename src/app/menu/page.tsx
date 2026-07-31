@@ -841,7 +841,21 @@ export default function GuestMenuPage() {
               <div className="flex justify-between items-center border-b border-[var(--stone-200)] pb-4">
                 <div>
                   <h2 className="text-2xl font-light text-[var(--stone-900)]">Order Summary</h2>
-                  <p className="text-[var(--stone-600)] mt-1">Room {roomNumber} • {new Date(`${breakfastDate}T${breakfastTime}`).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                  <div className="flex items-center flex-wrap gap-2 mt-2">
+                    <span className="text-[var(--stone-600)] text-sm">Room {roomNumber} •</span>
+                    <input 
+                      type="date"
+                      value={breakfastDate}
+                      onChange={(e) => setBreakfastDate(e.target.value)}
+                      className="bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-lg py-1 px-2 text-[var(--stone-700)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] cursor-pointer"
+                    />
+                    <input 
+                      type="time"
+                      value={breakfastTime}
+                      onChange={(e) => setBreakfastTime(e.target.value)}
+                      className="bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-lg py-1 px-2 text-[var(--stone-700)] text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] cursor-pointer"
+                    />
+                  </div>
                 </div>
                 <button onClick={() => setStep(2)} className="text-sm font-medium text-[var(--stone-500)] hover:text-[var(--stone-900)] transition-colors">
                   &larr; Edit
