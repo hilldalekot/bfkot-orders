@@ -16,6 +16,17 @@ const DEFAULT_STARTERS: Record<string, number> = {
   "Yoghurt": 1,
 };
 
+const SRI_LANKAN_MAINS: string[] = [
+  "Rice",
+  "Coconut Roty",
+  "Parata",
+  "Chapathi",
+  "Dhal Curry",
+  "Mix Veg Curry",
+  "Coconut Sambol",
+  "Egg Curry"
+];
+
 export default function KitchenDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -292,7 +303,8 @@ export default function KitchenDashboard() {
         }
         text += `\n`;
         
-        text += `MAIN COURSE\n`;
+        const hasSLMeals = order.mains && order.mains.some(m => SRI_LANKAN_MAINS.includes(m));
+        text += `MAIN COURSE${hasSLMeals ? ' (SL Meals)' : ''}\n`;
         if (order.mains && order.mains.length > 0) {
           order.mains.forEach(m => {
             if (m === "Bread Toast") {
@@ -753,7 +765,9 @@ export default function KitchenDashboard() {
 
                               {((order.mains && order.mains.length > 0) || order.eggStyle) && (
                                 <div className="mb-3">
-                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Main Course</h4>
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">
+                                    Main Course {order.mains?.some(m => SRI_LANKAN_MAINS.includes(m)) && <span className="text-[var(--accent-gold)]">(SL Meals)</span>}
+                                  </h4>
                                   {order.mains && order.mains.length > 0 && (
                                     <ul className="list-disc list-inside text-sm text-[var(--stone-900)] space-y-1 mb-2">
                                       {order.mains.map(m => (

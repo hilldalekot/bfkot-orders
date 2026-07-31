@@ -273,7 +273,8 @@ export default function GuestMenuPage() {
         }
         
         if (order.selectedMains.length > 0 || (order.includesEggs && order.eggStyle)) {
-          text += `MAIN COURSE\n`;
+          const hasSLMeals = order.selectedMains.some(m => SRI_LANKAN_MAINS.includes(m));
+          text += `MAIN COURSE${hasSLMeals ? ' (SL Meals)' : ''}\n`;
           if (order.selectedMains.length > 0) {
             order.selectedMains.forEach(m => {
               if (m === "Bread Toast") {
