@@ -115,7 +115,9 @@ export default function KitchenDashboard() {
     const starterCounts: Record<string, number> = {};
     const packedCounts: Record<string, number> = {};
     const slMainsCounts: Record<string, number> = {};
-    let packedExtrasCount = 0;
+    let packedBananas = 0;
+    let packedYoghurts = 0;
+    let packedWaters = 0;
     let driverPackedCount = 0;
 
     ROOM_NUMBERS.forEach(room => {
@@ -126,13 +128,19 @@ export default function KitchenDashboard() {
         // Driver packed breakfasts for this room
         const driverPacked = roomOrders[0].driverPackedBreakfasts || 0;
         driverPackedCount += driverPacked;
-        packedExtrasCount += driverPacked; // They also need extras
+        packedBananas += driverPacked;
+        packedYoghurts += driverPacked;
+        packedWaters += driverPacked;
         
         // Explicit order
         roomOrders.forEach(order => {
-          if (order.isPackedBreakfast && order.packedSandwichChoice) {
-            packedCounts[order.packedSandwichChoice] = (packedCounts[order.packedSandwichChoice] || 0) + 1;
-            packedExtrasCount += 1;
+          if (order.isPackedBreakfast) {
+            if (order.packedSandwichChoice) {
+              packedCounts[order.packedSandwichChoice] = (packedCounts[order.packedSandwichChoice] || 0) + 1;
+            }
+            if (order.packedIncludesBanana) packedBananas += 1;
+            if (order.packedIncludesYoghurt) packedYoghurts += 1;
+            if (order.packedIncludesWater) packedWaters += 1;
           } else {
             if (order.starters) {
               order.starters.forEach(s => {
@@ -165,11 +173,11 @@ export default function KitchenDashboard() {
       }
     });
 
-    return { starters: starterCounts, packed: packedCounts, slMains: slMainsCounts, extras: packedExtrasCount, driverPacked: driverPackedCount };
+    return { starters: starterCounts, packed: packedCounts, slMains: slMainsCounts, packedBananas, packedYoghurts, packedWaters, driverPacked: driverPackedCount };
   };
 
   const shareSummaryWhatsApp = () => {
-    const { starters, packed, slMains, extras, driverPacked } = generateProductionSummary();
+    const { starters, packed, slMains, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
     let text = `*Kitchen Production Summary*\n_Date: ${new Date().toLocaleDateString()}_\n\n`;
     
     text += `*STARTERS (Dine-In)*\n`;
@@ -239,8 +247,10 @@ export default function KitchenDashboard() {
         }
       });
 
-      text += `\n*Grab-and-Go Bags Needed: ${extras}*\n`;
-      text += `_(Each bag: 1 Banana, 1 Yoghurt, 1 Water)_\n`;
+      text += `\n*Packed Extras Needed*\n`;
+      text += `• Bananas: *${packedBananas}*\n`;
+      text += `• Yoghurts: *${packedYoghurts}*\n`;
+      text += `• Bottles of Water: *${packedWaters}*\n`;
     }
     
     const defaultRooms = ROOM_NUMBERS.filter(room => {
@@ -308,8 +318,15 @@ export default function KitchenDashboard() {
       
       if (order.isPackedBreakfast) {
         text += `[PACKED BREAKFAST]\n`;
-        text += `• ${order.packedSandwichChoice}\n`;
-        text += `• Banana (1), Yoghurt (1), Bottle of Water (1)\n\n`;
+        if (order.packedSandwichChoice) text += `• ${order.packedSandwichChoice}\n`;
+        let extras = [];
+        if (order.packedIncludesBanana) extras.push("Banana (1)");
+        if (order.packedIncludesYoghurt) extras.push("Yoghurt (1)");
+        if (order.packedIncludesWater) extras.push("Bottle of Water (1)");
+        if (extras.length > 0) {
+          text += `• ${extras.join(', ')}\n`;
+        }
+        text += `\n`;
       } else {
         text += `STARTERS\n`;
         if (order.starters && order.starters.length > 0) {

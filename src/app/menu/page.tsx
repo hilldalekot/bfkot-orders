@@ -82,6 +82,9 @@ type GuestOrderDraft = {
   beverageIncludesMilk: boolean;
   isPackedBreakfast: boolean;
   packedSandwichChoice: PackedSandwichType | null;
+  packedIncludesBanana: boolean;
+  packedIncludesYoghurt: boolean;
+  packedIncludesWater: boolean;
   dietaryNotes: string;
 };
 
@@ -104,6 +107,9 @@ const defaultGuestOrder = (index: number): GuestOrderDraft => ({
   beverageIncludesMilk: false,
   isPackedBreakfast: false,
   packedSandwichChoice: null,
+  packedIncludesBanana: true,
+  packedIncludesYoghurt: true,
+  packedIncludesWater: true,
   dietaryNotes: "",
 });
 
@@ -261,8 +267,15 @@ export default function GuestMenuPage() {
       
       if (order.isPackedBreakfast) {
         text += `[PACKED BREAKFAST]\n`;
-        text += `• ${order.packedSandwichChoice}\n`;
-        text += `• Banana (1), Yoghurt (1), Bottle of Water (1)\n`;
+        if (order.packedSandwichChoice) text += `• ${order.packedSandwichChoice}\n`;
+        let extras = [];
+        if (order.packedIncludesBanana) extras.push("Banana (1)");
+        if (order.packedIncludesYoghurt) extras.push("Yoghurt (1)");
+        if (order.packedIncludesWater) extras.push("Bottle of Water (1)");
+        if (extras.length > 0) {
+          text += `• ${extras.join(', ')}\n`;
+        }
+        text += `\n`;
       } else {
         if (order.selectedStarters.length > 0) {
           text += `STARTERS\n`;
@@ -359,6 +372,9 @@ export default function GuestMenuPage() {
         driverBreakfastNotes,
         isPackedBreakfast: go.isPackedBreakfast,
         packedSandwichChoice: go.isPackedBreakfast ? go.packedSandwichChoice : undefined,
+        packedIncludesBanana: go.isPackedBreakfast ? go.packedIncludesBanana : undefined,
+        packedIncludesYoghurt: go.isPackedBreakfast ? go.packedIncludesYoghurt : undefined,
+        packedIncludesWater: go.isPackedBreakfast ? go.packedIncludesWater : undefined,
         starters: go.isPackedBreakfast ? [] : go.selectedStarters,
         mains: go.isPackedBreakfast ? [] : go.selectedMains,
         toastSlices: go.isPackedBreakfast ? undefined : go.toastSlices,
@@ -791,11 +807,37 @@ export default function GuestMenuPage() {
                   </>
                   ) : (
                     <section className="space-y-6 animate-in fade-in slide-in-from-right-2">
-                      <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                        <p className="text-sm text-blue-800 flex items-start">
-                          <span className="mr-2">ℹ️</span>
-                          <span>Each packed breakfast automatically includes: <br/><strong>1x Banana, 1x Yoghurt, 1x Bottle of Water</strong></span>
-                        </p>
+                      <div>
+                        <h3 className="text-sm font-semibold text-[var(--stone-900)] uppercase tracking-widest mb-3">Extras (Included by Default)</h3>
+                        <div className="space-y-3">
+                          <label className="flex items-center space-x-3 cursor-pointer group">
+                            <input 
+                              type="checkbox"
+                              checked={currentGuest.packedIncludesBanana}
+                              onChange={(e) => updateCurrentGuest({ packedIncludesBanana: e.target.checked })}
+                              className="w-5 h-5 rounded border-[var(--stone-300)] text-[var(--accent-gold)] focus:ring-[var(--accent-gold)]"
+                            />
+                            <span className="text-[var(--stone-900)] text-sm">Banana (1)</span>
+                          </label>
+                          <label className="flex items-center space-x-3 cursor-pointer group">
+                            <input 
+                              type="checkbox"
+                              checked={currentGuest.packedIncludesYoghurt}
+                              onChange={(e) => updateCurrentGuest({ packedIncludesYoghurt: e.target.checked })}
+                              className="w-5 h-5 rounded border-[var(--stone-300)] text-[var(--accent-gold)] focus:ring-[var(--accent-gold)]"
+                            />
+                            <span className="text-[var(--stone-900)] text-sm">Yoghurt (1)</span>
+                          </label>
+                          <label className="flex items-center space-x-3 cursor-pointer group">
+                            <input 
+                              type="checkbox"
+                              checked={currentGuest.packedIncludesWater}
+                              onChange={(e) => updateCurrentGuest({ packedIncludesWater: e.target.checked })}
+                              className="w-5 h-5 rounded border-[var(--stone-300)] text-[var(--accent-gold)] focus:ring-[var(--accent-gold)]"
+                            />
+                            <span className="text-[var(--stone-900)] text-sm">Bottle of Water (1)</span>
+                          </label>
+                        </div>
                       </div>
                       
                       <div>

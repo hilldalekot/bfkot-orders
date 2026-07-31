@@ -57,6 +57,9 @@ export interface Order {
   packedSandwichChoice?: PackedSandwichType;
   driverPackedBreakfasts?: number;
   driverBreakfastNotes?: string;
+  packedIncludesBanana?: boolean;
+  packedIncludesYoghurt?: boolean;
+  packedIncludesWater?: boolean;
   starters: StarterType[];
   mains: MainCourseType[];
   toastSlices?: number;
