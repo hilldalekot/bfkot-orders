@@ -480,7 +480,7 @@ export default function GuestMenuPage() {
                       <span className="w-8 text-center font-medium text-[var(--stone-900)]">{guestCount}</span>
                       <button 
                         type="button"
-                        onClick={() => setGuestCount(prev => Math.min(4, prev + 1))}
+                        onClick={() => setGuestCount(prev => Math.min(20, prev + 1))}
                         className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--stone-50)] text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors"
                       >
                         +
