@@ -272,22 +272,25 @@ export default function GuestMenuPage() {
           text += `\n`;
         }
         
-        if (order.selectedMains.length > 0 || (order.includesEggs && order.eggStyle)) {
-          const hasSLMeals = order.selectedMains.some(m => SRI_LANKAN_MAINS.includes(m));
-          text += `MAIN COURSE${hasSLMeals ? ' (SL Meals)' : ''}\n`;
-          if (order.selectedMains.length > 0) {
-            order.selectedMains.forEach(m => {
-              if (m === "Bread Toast") {
-                let toastExtras = [];
-                if (order.includesButter) toastExtras.push("Butter");
-                if (order.includesJam) toastExtras.push("Jam");
-                let extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
-                text += `• Toast (${order.toastSlices} slices${extrasString})\n`;
-              } else {
-                text += `• ${m}\n`;
-              }
-            });
-          }
+        const englishMains = order.selectedMains.filter(m => !SRI_LANKAN_MAINS.includes(m));
+        const slMains = order.selectedMains.filter(m => SRI_LANKAN_MAINS.includes(m));
+        
+        const hasEnglishMains = englishMains.length > 0 || (order.includesEggs && order.eggStyle);
+        const hasSLMains = slMains.length > 0 || (order.includesSriLankanMeals && order.sriLankanNotes);
+
+        if (hasEnglishMains) {
+          text += `MAIN COURSE${hasSLMains ? ' (English)' : ''}\n`;
+          englishMains.forEach(m => {
+            if (m === "Bread Toast") {
+              let toastExtras = [];
+              if (order.includesButter) toastExtras.push("Butter");
+              if (order.includesJam) toastExtras.push("Jam");
+              let extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
+              text += `• Toast (${order.toastSlices} slices${extrasString})\n`;
+            } else {
+              text += `• ${m}\n`;
+            }
+          });
           if (order.includesEggs && order.eggStyle) {
             let eggText = order.eggStyle;
             if (order.eggStyle === "Fried Egg" && order.friedEggStyle) {
@@ -298,8 +301,16 @@ export default function GuestMenuPage() {
             }
             text += `Eggs: *${eggText}*\n`;
           }
+          text += `\n`;
+        }
+
+        if (hasSLMains) {
+          text += `MAIN COURSE (Sri Lankan)\n`;
+          slMains.forEach(m => {
+            text += `• ${m}\n`;
+          });
           if (order.includesSriLankanMeals && order.sriLankanNotes) {
-            text += `Sri Lankan Note: ${order.sriLankanNotes}\n`;
+            text += `Note: ${order.sriLankanNotes}\n`;
           }
           text += `\n`;
         }

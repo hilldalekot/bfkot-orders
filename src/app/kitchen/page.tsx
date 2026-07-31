@@ -303,10 +303,15 @@ export default function KitchenDashboard() {
         }
         text += `\n`;
         
-        const hasSLMeals = order.mains && order.mains.some(m => SRI_LANKAN_MAINS.includes(m));
-        text += `MAIN COURSE${hasSLMeals ? ' (SL Meals)' : ''}\n`;
-        if (order.mains && order.mains.length > 0) {
-          order.mains.forEach(m => {
+        const englishMains = order.mains ? order.mains.filter(m => !SRI_LANKAN_MAINS.includes(m)) : [];
+        const slMains = order.mains ? order.mains.filter(m => SRI_LANKAN_MAINS.includes(m)) : [];
+        
+        const hasEnglishMains = englishMains.length > 0 || order.eggStyle;
+        const hasSLMains = slMains.length > 0 || order.sriLankanNotes;
+        
+        if (hasEnglishMains) {
+          text += `MAIN COURSE${hasSLMains ? ' (English)' : ''}\n`;
+          englishMains.forEach(m => {
             if (m === "Bread Toast") {
               let toastExtras = [];
               if (order.includesButter) toastExtras.push("Butter");
@@ -317,18 +322,26 @@ export default function KitchenDashboard() {
               text += `• ${m}\n`;
             }
           });
-        }
-        if (order.eggStyle) {
-          let eggText = order.eggStyle;
-          if (order.eggStyle === "Fried Egg" && order.friedEggStyle) {
-            eggText += ` (${order.friedEggStyle})`;
+          if (order.eggStyle) {
+            let eggText = order.eggStyle;
+            if (order.eggStyle === "Fried Egg" && order.friedEggStyle) {
+              eggText += ` (${order.friedEggStyle})`;
+            }
+            text += `Eggs: *${eggText}*\n`;
           }
-          text += `Eggs: *${eggText}*\n`;
+          text += `\n`;
         }
-        if (order.sriLankanNotes) {
-          text += `Sri Lankan Note: ${order.sriLankanNotes}\n`;
+
+        if (hasSLMains) {
+          text += `MAIN COURSE (Sri Lankan)\n`;
+          slMains.forEach(m => {
+            text += `• ${m}\n`;
+          });
+          if (order.sriLankanNotes) {
+            text += `Note: ${order.sriLankanNotes}\n`;
+          }
+          text += `\n`;
         }
-        text += `\n`;
         
         text += `BEVERAGE\n`;
         if (order.beverage) {
@@ -763,40 +776,67 @@ export default function KitchenDashboard() {
                                 </div>
                               )}
 
-                              {((order.mains && order.mains.length > 0) || order.eggStyle) && (
-                                <div className="mb-3">
-                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">
-                                    Main Course {order.mains?.some(m => SRI_LANKAN_MAINS.includes(m)) && <span className="text-[var(--accent-gold)]">(SL Meals)</span>}
-                                  </h4>
-                                  {order.mains && order.mains.length > 0 && (
-                                    <ul className="list-disc list-inside text-sm text-[var(--stone-900)] space-y-1 mb-2">
-                                      {order.mains.map(m => (
-                                        <li key={m}>
-                                          {m} 
-                                          {m === "Bread Toast" && (
-                                            <span className="text-[var(--stone-600)] ml-1">
-                                              ({order.toastSlices} slices{order.includesButter ? ', Butter' : ''}{order.includesJam ? ', Jam' : ''})
-                                            </span>
-                                          )}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                  {order.eggStyle && (
-                                    <p className="text-sm text-[var(--stone-900)] mt-2">
-                                      Eggs: <span className="font-semibold">{order.eggStyle}</span>
-                                      {order.eggStyle === "Fried Egg" && order.friedEggStyle && (
-                                        <span className="font-semibold"> ({order.friedEggStyle})</span>
-                                      )}
-                                    </p>
-                                  )}
-                                  {order.sriLankanNotes && (
-                                    <p className="text-sm text-[var(--stone-900)] mt-2">
-                                      Sri Lankan Note: <span className="font-semibold">{order.sriLankanNotes}</span>
-                                    </p>
-                                  )}
-                                </div>
-                              )}
+                              {(() => {
+                                const englishMains = order.mains ? order.mains.filter(m => !SRI_LANKAN_MAINS.includes(m)) : [];
+                                const slMains = order.mains ? order.mains.filter(m => SRI_LANKAN_MAINS.includes(m)) : [];
+                                
+                                const hasEnglishMains = englishMains.length > 0 || order.eggStyle;
+                                const hasSLMains = slMains.length > 0 || order.sriLankanNotes;
+                                
+                                return (
+                                  <>
+                                    {hasEnglishMains && (
+                                      <div className="mb-3">
+                                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">
+                                          Main Course {hasSLMains ? <span className="text-[var(--stone-500)]">(English)</span> : ''}
+                                        </h4>
+                                        {englishMains.length > 0 && (
+                                          <ul className="list-disc list-inside text-sm text-[var(--stone-900)] space-y-1 mb-2">
+                                            {englishMains.map(m => (
+                                              <li key={m}>
+                                                {m} 
+                                                {m === "Bread Toast" && (
+                                                  <span className="text-[var(--stone-600)] ml-1">
+                                                    ({order.toastSlices} slices{order.includesButter ? ', Butter' : ''}{order.includesJam ? ', Jam' : ''})
+                                                  </span>
+                                                )}
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                        {order.eggStyle && (
+                                          <p className="text-sm text-[var(--stone-900)] mt-2">
+                                            Eggs: <span className="font-semibold">{order.eggStyle}</span>
+                                            {order.eggStyle === "Fried Egg" && order.friedEggStyle && (
+                                              <span className="font-semibold"> ({order.friedEggStyle})</span>
+                                            )}
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {hasSLMains && (
+                                      <div className="mb-3">
+                                        <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">
+                                          Main Course <span className="text-[var(--accent-gold)]">(Sri Lankan)</span>
+                                        </h4>
+                                        {slMains.length > 0 && (
+                                          <ul className="list-disc list-inside text-sm text-[var(--stone-900)] space-y-1 mb-2">
+                                            {slMains.map(m => (
+                                              <li key={m}>{m}</li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                        {order.sriLankanNotes && (
+                                          <p className="text-sm text-[var(--stone-900)] mt-2">
+                                            Note: <span className="font-semibold">{order.sriLankanNotes}</span>
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </>
+                                );
+                              })()}
 
                               {order.beverage && (
                                 <div>
