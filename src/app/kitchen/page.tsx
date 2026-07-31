@@ -289,8 +289,6 @@ export default function KitchenDashboard() {
               text += `• ${s}\n`;
             }
           });
-        } else {
-          text += `_None selected_\n`;
         }
         text += `\n`;
         
@@ -307,8 +305,6 @@ export default function KitchenDashboard() {
               text += `• ${m}\n`;
             }
           });
-        } else {
-          text += `_No mains selected_\n`;
         }
         if (order.eggStyle) {
           let eggText = order.eggStyle;
@@ -316,16 +312,12 @@ export default function KitchenDashboard() {
             eggText += ` (${order.friedEggStyle})`;
           }
           text += `Eggs: *${eggText}*\n`;
-        } else {
-          text += `_No eggs selected_\n`;
         }
         text += `\n`;
         
         text += `BEVERAGE\n`;
         if (order.beverage) {
           text += `*${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}*\n`;
-        } else {
-          text += `_No beverage selected_\n`;
         }
       }
       
@@ -745,59 +737,53 @@ export default function KitchenDashboard() {
                             </div>
                           ) : (
                             <>
-                              <div>
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Starters</h4>
-                                {order.starters.length > 0 ? (
+                              {order.starters && order.starters.length > 0 && (
+                                <div className="mb-3">
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Starters</h4>
                                   <ul className="list-disc list-inside text-sm text-[var(--stone-900)] space-y-1">
                                     {order.starters.map(s => (
                                       <li key={s}>{s === "Fruit Platter" && order.isKidFruitPlatter ? "Fruit Platter (Kid's Portion)" : s}</li>
                                     ))}
                                   </ul>
-                                ) : (
-                                  <p className="text-sm text-[var(--stone-800)] italic">None selected</p>
-                                )}
-                              </div>
+                                </div>
+                              )}
 
-                              <div>
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Main Course</h4>
-                                {order.mains && order.mains.length > 0 ? (
-                                  <ul className="list-disc list-inside text-sm text-[var(--stone-900)] space-y-1 mb-2">
-                                    {order.mains.map(m => (
-                                      <li key={m}>
-                                        {m} 
-                                        {m === "Bread Toast" && (
-                                          <span className="text-[var(--stone-600)] ml-1">
-                                            ({order.toastSlices} slices{order.includesButter ? ', Butter' : ''}{order.includesJam ? ', Jam' : ''})
-                                          </span>
-                                        )}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : (
-                                  <p className="text-sm text-[var(--stone-800)] italic mb-2">No mains selected</p>
-                                )}
-                                {order.eggStyle ? (
-                                  <p className="text-sm text-[var(--stone-900)] mt-2">
-                                    Eggs: <span className="font-semibold">{order.eggStyle}</span>
-                                    {order.eggStyle === "Fried Egg" && order.friedEggStyle && (
-                                      <span className="font-semibold"> ({order.friedEggStyle})</span>
-                                    )}
-                                  </p>
-                                ) : (
-                                  <p className="text-sm text-[var(--stone-800)] italic mt-2">No eggs selected</p>
-                                )}
-                              </div>
+                              {((order.mains && order.mains.length > 0) || order.eggStyle) && (
+                                <div className="mb-3">
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Main Course</h4>
+                                  {order.mains && order.mains.length > 0 && (
+                                    <ul className="list-disc list-inside text-sm text-[var(--stone-900)] space-y-1 mb-2">
+                                      {order.mains.map(m => (
+                                        <li key={m}>
+                                          {m} 
+                                          {m === "Bread Toast" && (
+                                            <span className="text-[var(--stone-600)] ml-1">
+                                              ({order.toastSlices} slices{order.includesButter ? ', Butter' : ''}{order.includesJam ? ', Jam' : ''})
+                                            </span>
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                  {order.eggStyle && (
+                                    <p className="text-sm text-[var(--stone-900)] mt-2">
+                                      Eggs: <span className="font-semibold">{order.eggStyle}</span>
+                                      {order.eggStyle === "Fried Egg" && order.friedEggStyle && (
+                                        <span className="font-semibold"> ({order.friedEggStyle})</span>
+                                      )}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
 
-                              <div>
-                                <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Beverage</h4>
-                                {order.beverage ? (
+                              {order.beverage && (
+                                <div>
+                                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Beverage</h4>
                                   <p className="text-sm text-[var(--stone-900)] font-semibold">
                                     {order.beverage} {order.beverageIncludesMilk ? "(With Milk)" : "(Black / No Milk)"}
                                   </p>
-                                ) : (
-                                  <p className="text-sm text-[var(--stone-800)] italic">No beverage selected</p>
-                                )}
-                              </div>
+                                </div>
+                              )}
                             </>
                           )}
                           

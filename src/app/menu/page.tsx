@@ -249,55 +249,45 @@ export default function GuestMenuPage() {
         text += `• ${order.packedSandwichChoice}\n`;
         text += `• Banana (1), Yoghurt (1), Bottle of Water (1)\n`;
       } else {
-        text += `STARTERS\n`;
         if (order.selectedStarters.length > 0) {
+          text += `STARTERS\n`;
           order.selectedStarters.forEach(s => {
-            if (s === "Fruit Platter" && order.isKidFruitPlatter) {
-              text += `• Fruit Platter (Kid's Portion)\n`;
-            } else {
-              text += `• ${s}\n`;
-            }
+            text += `• ${s === "Fruit Platter" && order.isKidFruitPlatter ? "Fruit Platter (Kid's Portion)" : s}\n`;
           });
-        } else {
-          text += `_None selected_\n`;
+          text += `\n`;
         }
-        text += `\n`;
         
-        text += `MAIN COURSE\n`;
-        if (order.selectedMains.length > 0) {
-          order.selectedMains.forEach(m => {
-            if (m === "Bread Toast") {
-              let toastExtras = [];
-              if (order.includesButter) toastExtras.push("Butter");
-              if (order.includesJam) toastExtras.push("Jam");
-              let extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
-              text += `• Toast (${order.toastSlices} slices${extrasString})\n`;
-            } else {
-              text += `• ${m}\n`;
+        if (order.selectedMains.length > 0 || (order.includesEggs && order.eggStyle)) {
+          text += `MAIN COURSE\n`;
+          if (order.selectedMains.length > 0) {
+            order.selectedMains.forEach(m => {
+              if (m === "Bread Toast") {
+                let toastExtras = [];
+                if (order.includesButter) toastExtras.push("Butter");
+                if (order.includesJam) toastExtras.push("Jam");
+                let extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
+                text += `• Toast (${order.toastSlices} slices${extrasString})\n`;
+              } else {
+                text += `• ${m}\n`;
+              }
+            });
+          }
+          if (order.includesEggs && order.eggStyle) {
+            let eggText = order.eggStyle;
+            if (order.eggStyle === "Fried Egg" && order.friedEggStyle) {
+              eggText += ` (${order.friedEggStyle})`;
             }
-          });
-        } else {
-          text += `_No mains selected_\n`;
-        }
-        if (order.includesEggs && order.eggStyle) {
-          let eggText = order.eggStyle;
-          if (order.eggStyle === "Fried Egg" && order.friedEggStyle) {
-            eggText += ` (${order.friedEggStyle})`;
+            if (order.eggNotes) {
+              eggText += ` - ${order.eggNotes}`;
+            }
+            text += `Eggs: *${eggText}*\n`;
           }
-          if (order.eggNotes) {
-            eggText += ` - ${order.eggNotes}`;
-          }
-          text += `Eggs: *${eggText}*\n`;
-        } else {
-          text += `_No eggs selected_\n`;
+          text += `\n`;
         }
-        text += `\n`;
         
-        text += `BEVERAGE\n`;
         if (order.includesBeverage && order.beverage) {
-          text += `*${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}*\n`;
-        } else {
-          text += `_No beverage selected_\n`;
+          text += `BEVERAGE\n`;
+          text += `*${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}*\n\n`;
         }
       }
       
