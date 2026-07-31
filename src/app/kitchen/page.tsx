@@ -726,9 +726,14 @@ export default function KitchenDashboard() {
 
                         <button 
                           onClick={async () => {
-                            if (confirm(`Are you sure you want to clear these orders for Room ${roomNumber}?`)) {
-                              const deletePromises = roomOrders.map(o => deleteDoc(doc(db, "orders", o.id)));
-                              await Promise.all(deletePromises);
+                            const enteredPin = window.prompt("Enter PIN to delete orders:");
+                            if (enteredPin === "1234") {
+                              if (confirm(`Are you sure you want to clear these orders for Room ${roomNumber}?`)) {
+                                const deletePromises = roomOrders.map(o => deleteDoc(doc(db, "orders", o.id)));
+                                await Promise.all(deletePromises);
+                              }
+                            } else if (enteredPin !== null) {
+                              alert("Incorrect PIN");
                             }
                           }}
                           className="p-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors"
