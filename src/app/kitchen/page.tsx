@@ -114,8 +114,7 @@ export default function KitchenDashboard() {
   const generateProductionSummary = () => {
     const starterCounts: Record<string, number> = {};
     const packedCounts: Record<string, number> = {};
-    const slMainsCounts: Record<string, number> = {};
-    const slNotesList: string[] = [];
+    const slGroups: Record<string, Order[]> = {};
     let packedBananas = 0;
     let packedYoghurts = 0;
     let packedWaters = 0;
@@ -150,15 +149,22 @@ export default function KitchenDashboard() {
                 starterCounts[starterName] = (starterCounts[starterName] || 0) + qty;
               });
             }
+            let hasSL = false;
             if (order.mains) {
               order.mains.forEach(m => {
                 if (SRI_LANKAN_MAINS.includes(m)) {
-                  slMainsCounts[m] = (slMainsCounts[m] || 0) + 1;
+                  hasSL = true;
                 }
               });
             }
             if (order.sriLankanNotes) {
-              slNotesList.push(`Room ${room} (${order.guestName}): ${order.sriLankanNotes}`);
+              hasSL = true;
+            }
+            if (hasSL) {
+              const timeStr = order.breakfastTime ? new Date(order.breakfastTime).toLocaleString([], { timeStyle: 'short' }) : 'Time not specified';
+              const key = `${room}|${timeStr}`;
+              if (!slGroups[key]) slGroups[key] = [];
+              slGroups[key].push(order);
             }
           }
         });
@@ -177,11 +183,11 @@ export default function KitchenDashboard() {
       }
     });
 
-    return { starters: starterCounts, packed: packedCounts, slMains: slMainsCounts, slNotesList, packedBananas, packedYoghurts, packedWaters, driverPacked: driverPackedCount };
+    return { starters: starterCounts, packed: packedCounts, slGroups, packedBananas, packedYoghurts, packedWaters, driverPacked: driverPackedCount };
   };
 
   const shareSummaryWhatsApp = () => {
-    const { starters, packed, slMains, slNotesList, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
+    const { starters, packed, slGroups, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
     let text = `*Kitchen Production Summary*\n_Date: ${new Date().toLocaleDateString()}_\n\n`;
     
     text += `*STARTERS (Dine-In)*\n`;
@@ -194,14 +200,28 @@ export default function KitchenDashboard() {
       });
     }
 
-    const slMainsKeys = Object.keys(slMains).sort();
-    if (slMainsKeys.length > 0 || slNotesList.length > 0) {
+    const slGroupsKeys = Object.keys(slGroups).sort();
+    if (slGroupsKeys.length > 0) {
       text += `\n*SRI LANKAN MAINS (Dine-In)*\n`;
-      slMainsKeys.forEach(k => {
-        text += `• ${k}: *${slMains[k]}*\n`;
-      });
-      slNotesList.forEach(note => {
-        text += `• _${note}_\n`;
+      slGroupsKeys.forEach(key => {
+        const [room, timeStr] = key.split('|');
+        const groupOrders = slGroups[key];
+        text += `_Room ${room}, ${timeStr}_\n`;
+        groupOrders.forEach(o => {
+          let items: string[] = [];
+          if (o.mains) {
+            o.mains.forEach(m => {
+              if (SRI_LANKAN_MAINS.includes(m)) {
+                items.push(m);
+              }
+            });
+          }
+          let itemsStr = items.join(', ');
+          if (o.sriLankanNotes) {
+            itemsStr += itemsStr ? `, Note: ${o.sriLankanNotes}` : `Note: ${o.sriLankanNotes}`;
+          }
+          text += `• ${o.guestName}: ${itemsStr}\n`;
+        });
       });
     }
     
@@ -627,9 +647,9 @@ export default function KitchenDashboard() {
                 
                 <div className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] overflow-hidden">
                   {(() => {
-                    const { starters, packed, slMains, slNotesList, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
+                    const { starters, packed, slGroups, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
                     const starterKeys = Object.keys(starters).sort();
-                    const slMainsKeys = Object.keys(slMains).sort();
+                    const slGroupsKeys = Object.keys(slGroups).sort();
                     const packedKeys = Object.keys(packed).sort();
                     
                     return (
@@ -654,25 +674,44 @@ export default function KitchenDashboard() {
                         )}
 
                         {/* Sri Lankan Mains */}
-                        {(slMainsKeys.length > 0 || slNotesList.length > 0) && (
+                        {slGroupsKeys.length > 0 && (
                           <>
                             <div className="p-4 bg-[var(--stone-900)] text-white mt-4 border-t border-[var(--stone-200)]">
                               <h4 className="font-medium text-sm tracking-widest uppercase text-[var(--accent-gold)]">Sri Lankan Mains (Dine-In)</h4>
                             </div>
                             <ul className="divide-y divide-[var(--stone-100)]">
-                              {slMainsKeys.map(k => (
-                                <li key={k} className="px-6 py-4 flex justify-between items-center hover:bg-[var(--stone-50)] transition-colors">
-                                  <span className="font-medium text-[var(--stone-900)]">{k}</span>
-                                  <span className="bg-[var(--accent-gold)] text-[var(--stone-900)] text-sm font-bold w-10 h-10 rounded-full flex items-center justify-center">
-                                    {slMains[k]}
-                                  </span>
-                                </li>
-                              ))}
-                              {slNotesList.map((note, idx) => (
-                                <li key={idx} className="px-6 py-4 flex flex-col justify-center hover:bg-[var(--stone-50)] transition-colors">
-                                  <span className="font-medium text-[var(--stone-900)] italic">{note}</span>
-                                </li>
-                              ))}
+                              {slGroupsKeys.map(key => {
+                                const [room, timeStr] = key.split('|');
+                                const groupOrders = slGroups[key];
+                                return (
+                                  <li key={key} className="px-6 py-4 flex flex-col justify-center hover:bg-[var(--stone-50)] transition-colors">
+                                    <div className="font-medium text-sm text-[var(--stone-500)] mb-2 uppercase tracking-wide">
+                                      Room {room} <span className="ml-2 font-normal lowercase tracking-normal">@ {timeStr}</span>
+                                    </div>
+                                    <ul className="space-y-1">
+                                      {groupOrders.map((o, idx) => {
+                                        let items: string[] = [];
+                                        if (o.mains) {
+                                          o.mains.forEach(m => {
+                                            if (SRI_LANKAN_MAINS.includes(m)) {
+                                              items.push(m);
+                                            }
+                                          });
+                                        }
+                                        let itemsStr = items.join(', ');
+                                        if (o.sriLankanNotes) {
+                                          itemsStr += itemsStr ? `, Note: ${o.sriLankanNotes}` : `Note: ${o.sriLankanNotes}`;
+                                        }
+                                        return (
+                                          <li key={idx} className="text-sm text-[var(--stone-900)]">
+                                            <span className="font-medium">{o.guestName}:</span> {itemsStr}
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
+                                  </li>
+                                );
+                              })}
                             </ul>
                           </>
                         )}
