@@ -620,7 +620,7 @@ export default function KitchenDashboard() {
                 
                 <div className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] overflow-hidden">
                   {(() => {
-                    const { starters, packed, extras, driverPacked } = generateProductionSummary();
+                    const { starters, packed, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
                     const starterKeys = Object.keys(starters).sort();
                     const packedKeys = Object.keys(packed).sort();
                     
@@ -670,8 +670,8 @@ export default function KitchenDashboard() {
                               )}
                               <li className="px-6 py-4 bg-blue-50 border-t border-blue-100">
                                 <div className="text-sm text-blue-900">
-                                  <span className="font-semibold">{extras} Grab-and-Go Bags</span> required.<br/>
-                                  <span className="text-xs text-blue-800">Total: {extras} Bananas, {extras} Yoghurts, {extras} Water Bottles</span>
+                                  <span className="font-semibold">Packed Extras</span> required.<br/>
+                                  <span className="text-xs text-blue-800">Total: {packedBananas} Bananas, {packedYoghurts} Yoghurts, {packedWaters} Water Bottles</span>
                                 </div>
                               </li>
                             </ul>
