@@ -5,6 +5,9 @@ import Link from "next/link";
 import { StarterType, EggStyle, BeverageType, MainCourseType, FriedEggStyle, PackedSandwichType } from "@/types";
 import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
+import toast from "react-hot-toast";
+import DebouncedInput from "@/components/DebouncedInput";
+import DebouncedTextarea from "@/components/DebouncedTextarea";
 const PACKED_SANDWICHES: PackedSandwichType[] = [
   "Vegetable Sandwich",
   "Egg Sandwich",
@@ -392,16 +395,20 @@ export default function GuestMenuPage() {
         staffName: staffName || "Unknown Staff",
       }));
 
-      for (const orderPayload of payload) {
-        // Remove undefined fields for Firestore
+      const promises = payload.map(orderPayload => {
         Object.keys(orderPayload).forEach(key => {
           if ((orderPayload as any)[key] === undefined) {
             delete (orderPayload as any)[key];
           }
         });
-        
-        await addDoc(collection(db, "orders"), orderPayload);
-      }
+        return addDoc(collection(db, "orders"), orderPayload);
+      });
+      
+      await toast.promise(Promise.all(promises), {
+        loading: 'Sending order to kitchen...',
+        success: 'Order submitted successfully!',
+        error: 'Failed to submit order.'
+      });
 
       setIsSuccess(true);
       
@@ -410,6 +417,7 @@ export default function GuestMenuPage() {
       resetForm();
 
     } catch (err: any) {
+      toast.error(err.message || "An unexpected error occurred.");
       setError(err.message || "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
@@ -592,10 +600,10 @@ export default function GuestMenuPage() {
                 <div className="space-y-8">
                   <div>
                     <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Guest Name</label>
-                    <input 
+                    <DebouncedInput 
                       type="text" 
                       value={currentGuest.guestName}
-                      onChange={(e) => updateCurrentGuest({ guestName: e.target.value })}
+                      onDebouncedChange={(val) => updateCurrentGuest({ guestName: val })}
                       className="w-full border-b border-[var(--stone-200)] pb-2 focus:border-[var(--accent-gold)] focus:outline-none bg-transparent transition-colors text-lg"
                       placeholder={`Guest ${currentGuestIndex + 1}`}
                     />
@@ -733,11 +741,11 @@ export default function GuestMenuPage() {
                               {FRIED_EGG_STYLES.map(style => <option key={style} value={style}>{style}</option>)}
                             </select>
                           )}
-                          <input 
+                          <DebouncedInput 
                             type="text"
                             placeholder="Any notes for eggs? (e.g. Well done, soft boiled)"
                             value={currentGuest.eggNotes}
-                            onChange={(e) => updateCurrentGuest({ eggNotes: e.target.value })}
+                            onDebouncedChange={(val) => updateCurrentGuest({ eggNotes: val })}
                             className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
                           />
                         </div>
@@ -764,11 +772,11 @@ export default function GuestMenuPage() {
                               </label>
                             ))}
                           </div>
-                          <input 
+                          <DebouncedInput 
                             type="text"
                             placeholder="Any notes for Sri Lankan meals?"
                             value={currentGuest.sriLankanNotes}
-                            onChange={(e) => updateCurrentGuest({ sriLankanNotes: e.target.value })}
+                            onDebouncedChange={(val) => updateCurrentGuest({ sriLankanNotes: val })}
                             className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
                           />
                         </div>
@@ -860,9 +868,9 @@ export default function GuestMenuPage() {
 
                   <section>
                     <h3 className="text-sm font-semibold text-[var(--stone-900)] uppercase tracking-widest mb-2">Dietary Notes</h3>
-                    <textarea 
+                    <DebouncedTextarea 
                       value={currentGuest.dietaryNotes}
-                      onChange={(e) => updateCurrentGuest({ dietaryNotes: e.target.value })}
+                      onDebouncedChange={(val) => updateCurrentGuest({ dietaryNotes: val })}
                       rows={2}
                       className="w-full bg-white border border-[var(--stone-200)] rounded-xl py-3 px-4 text-[var(--stone-900)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] resize-none"
                       placeholder="Any allergies or special requests?"
@@ -987,9 +995,9 @@ export default function GuestMenuPage() {
                     </div>
                   </div>
                   {driverPackedBreakfasts > 0 && (
-                    <textarea
+                    <DebouncedTextarea
                       value={driverBreakfastNotes}
-                      onChange={(e) => setDriverBreakfastNotes(e.target.value)}
+                      onDebouncedChange={(val) => setDriverBreakfastNotes(val)}
                       placeholder="Notes (e.g. 1 Chicken, 1 Cheese)"
                       className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-3 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
                       rows={2}

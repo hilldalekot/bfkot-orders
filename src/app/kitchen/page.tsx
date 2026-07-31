@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { Order, OrderStatus } from "@/types";
 import { db } from "@/lib/firebase";
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, getDocs, getDoc, where } from "firebase/firestore";
@@ -845,7 +846,7 @@ export default function KitchenDashboard() {
                           onClick={async () => {
                             const staffName = localStorage.getItem("staffName");
                             if (!staffName) {
-                              alert("You must be logged in to delete orders.");
+                              toast.error("You must be logged in to delete orders.");
                               return;
                             }
                             const enteredPin = window.prompt(`Enter PIN for ${staffName} to delete orders:`);
@@ -856,14 +857,18 @@ export default function KitchenDashboard() {
                               if (staffDoc.exists() && staffDoc.data().pin === enteredPin) {
                                 if (confirm(`Are you sure you want to clear these orders for Room ${roomNumber}?`)) {
                                   const deletePromises = roomOrders.map(o => deleteDoc(doc(db, "orders", o.id)));
-                                  await Promise.all(deletePromises);
+                                  toast.promise(Promise.all(deletePromises), {
+                                    loading: 'Deleting orders...',
+                                    success: 'Orders deleted successfully!',
+                                    error: 'Failed to delete orders.'
+                                  });
                                 }
                               } else {
-                                alert("Incorrect PIN");
+                                toast.error("Incorrect PIN");
                               }
                             } catch (err) {
                               console.error("Error verifying PIN", err);
-                              alert("Error verifying PIN");
+                              toast.error("Error verifying PIN");
                             }
                           }}
                           className="p-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 rounded-lg transition-colors"
