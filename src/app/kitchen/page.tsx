@@ -31,7 +31,7 @@ export default function KitchenDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSummary, setShowSummary] = useState(false);
-  const [occupancy, setOccupancy] = useState<Record<string, { occupied: boolean; guests: number; kids?: number; time?: string; type?: 'English' | 'Sri Lankan' }>>({});
+  const [occupancy, setOccupancy] = useState<Record<string, { occupied: boolean; guests: number; kids?: number; time?: string; type?: 'English' | 'Sri Lankan'; note?: string }>>({});
   const [extraMeals, setExtraMeals] = useState<{ drivers: number; staff: number }>({ drivers: 0, staff: 0 });
   const [filterTab, setFilterTab] = useState<'active' | 'completed'>('active');
 
@@ -95,7 +95,7 @@ export default function KitchenDashboard() {
     return () => unsubscribe();
   }, []);
 
-  const updateOccupancy = (room: string, field: 'occupied' | 'guests' | 'kids' | 'time' | 'type', value: any) => {
+  const updateOccupancy = (room: string, field: 'occupied' | 'guests' | 'kids' | 'time' | 'type' | 'note', value: any) => {
     setOccupancy(prev => {
       const next = { ...prev, [room]: { ...prev[room], [field]: value } };
       localStorage.setItem("kitchenOccupancy", JSON.stringify(next));
@@ -114,6 +114,7 @@ export default function KitchenDashboard() {
   const generateProductionSummary = () => {
     const starterCounts: Record<string, number> = {};
     const packedCounts: Record<string, number> = {};
+    const slMainsCounts: Record<string, number> = {};
     let packedExtrasCount = 0;
     let driverPackedCount = 0;
 
@@ -132,12 +133,21 @@ export default function KitchenDashboard() {
           if (order.isPackedBreakfast && order.packedSandwichChoice) {
             packedCounts[order.packedSandwichChoice] = (packedCounts[order.packedSandwichChoice] || 0) + 1;
             packedExtrasCount += 1;
-          } else if (order.starters) {
-            order.starters.forEach(s => {
-              const starterName = (s === "Fruit Platter" && order.isKidFruitPlatter) ? "Fruit Platter (Kid's Portion)" : s;
-              const qty = s === "Waffles with Treacle" ? 2 : 1;
-              starterCounts[starterName] = (starterCounts[starterName] || 0) + qty;
-            });
+          } else {
+            if (order.starters) {
+              order.starters.forEach(s => {
+                const starterName = (s === "Fruit Platter" && order.isKidFruitPlatter) ? "Fruit Platter (Kid's Portion)" : s;
+                const qty = s === "Waffles with Treacle" ? 2 : 1;
+                starterCounts[starterName] = (starterCounts[starterName] || 0) + qty;
+              });
+            }
+            if (order.mains) {
+              order.mains.forEach(m => {
+                if (SRI_LANKAN_MAINS.includes(m)) {
+                  slMainsCounts[m] = (slMainsCounts[m] || 0) + 1;
+                }
+              });
+            }
           }
         });
       } else if (roomOcc?.occupied) {
@@ -155,11 +165,11 @@ export default function KitchenDashboard() {
       }
     });
 
-    return { starters: starterCounts, packed: packedCounts, extras: packedExtrasCount, driverPacked: driverPackedCount };
+    return { starters: starterCounts, packed: packedCounts, slMains: slMainsCounts, extras: packedExtrasCount, driverPacked: driverPackedCount };
   };
 
   const shareSummaryWhatsApp = () => {
-    const { starters, packed, extras, driverPacked } = generateProductionSummary();
+    const { starters, packed, slMains, extras, driverPacked } = generateProductionSummary();
     let text = `*Kitchen Production Summary*\n_Date: ${new Date().toLocaleDateString()}_\n\n`;
     
     text += `*STARTERS (Dine-In)*\n`;
@@ -169,6 +179,14 @@ export default function KitchenDashboard() {
     } else {
       starterKeys.forEach(k => {
         text += `• ${k}: *${starters[k]}*\n`;
+      });
+    }
+
+    const slMainsKeys = Object.keys(slMains).sort();
+    if (slMainsKeys.length > 0) {
+      text += `\n*SRI LANKAN MAINS (Dine-In)*\n`;
+      slMainsKeys.forEach(k => {
+        text += `• ${k}: *${slMains[k]}*\n`;
       });
     }
     
@@ -242,7 +260,9 @@ export default function KitchenDashboard() {
           timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
         const typeStr = occ.type || 'English';
-        text += `• Room ${room}: ${typeStr} @ ${timeStr} (${occ.guests || 2} Guests, ${occ.kids || 0} Kids)\n`;
+        text += `• Room ${room}: ${typeStr} @ ${timeStr} (${occ.guests || 2} Guests, ${occ.kids || 0} Kids)`;
+        if (occ.note) text += ` - Note: ${occ.note}`;
+        text += `\n`;
       });
     }
 
@@ -514,6 +534,15 @@ export default function KitchenDashboard() {
                                 className="w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] hover:bg-[var(--stone-200)] flex items-center justify-center font-medium"
                               >+</button>
                             </div>
+                          </div>
+                          <div className="pl-6 pt-1">
+                            <input 
+                              type="text"
+                              placeholder="Note (e.g. SL Meals)"
+                              value={occupancy[room]?.note || ''}
+                              onChange={(e) => updateOccupancy(room, 'note', e.target.value)}
+                              className="w-full bg-white border border-[var(--stone-200)] rounded-md py-1.5 px-2 text-xs text-[var(--stone-700)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] placeholder:text-[var(--stone-400)]"
+                            />
                           </div>
                         </div>
                       )}
