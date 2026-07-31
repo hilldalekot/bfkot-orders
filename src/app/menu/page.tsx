@@ -43,6 +43,17 @@ const MAINS: MainCourseType[] = [
   "Bread Toast"
 ];
 
+const SRI_LANKAN_MAINS: MainCourseType[] = [
+  "Rice",
+  "Coconut Roty",
+  "Parata",
+  "Chapathi",
+  "Dhal Curry",
+  "Mix Veg Curry",
+  "Coconut Sambol",
+  "Egg Curry"
+];
+
 const FRIED_EGG_STYLES: FriedEggStyle[] = [
   "Sunny-Side Up",
   "Over Easy",
@@ -60,6 +71,7 @@ type GuestOrderDraft = {
   includesButter: boolean;
   includesJam: boolean;
   isKidFruitPlatter: boolean;
+  includesSriLankanMeals: boolean;
   includesEggs: boolean;
   eggStyle: EggStyle;
   friedEggStyle: FriedEggStyle;
@@ -80,6 +92,7 @@ const defaultGuestOrder = (index: number): GuestOrderDraft => ({
   includesButter: true,
   includesJam: true,
   isKidFruitPlatter: false,
+  includesSriLankanMeals: false,
   includesEggs: false,
   eggStyle: "Omelet",
   friedEggStyle: "Sunny-Side Up",
@@ -657,6 +670,30 @@ export default function GuestMenuPage() {
                         </div>
                       </div>
                     )}
+
+                    <div className="mt-4 pt-4 border-t border-[var(--stone-100)]">
+                      <label className="flex items-center space-x-3 cursor-pointer group mb-3">
+                        <div onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })} className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.includesSriLankanMeals ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)]'}`}>
+                          {currentGuest.includesSriLankanMeals && <span className="text-white text-xs">✓</span>}
+                        </div>
+                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })}>Sri Lankan Meals</span>
+                      </label>
+
+                      {currentGuest.includesSriLankanMeals && (
+                        <div className="pl-8 border-l-2 border-[var(--stone-100)] ml-2 mb-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {SRI_LANKAN_MAINS.map((main) => (
+                              <label key={main} onClick={() => toggleMain(main)} className="flex items-center space-x-3 cursor-pointer group">
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.selectedMains.includes(main) ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)] group-hover:border-[var(--accent-gold)]'}`}>
+                                  {currentGuest.selectedMains.includes(main) && <span className="text-white text-xs">✓</span>}
+                                </div>
+                                <span className="text-[var(--stone-900)] text-sm">{main}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     <div>
                       <label className="flex items-center space-x-3 cursor-pointer group mb-3">

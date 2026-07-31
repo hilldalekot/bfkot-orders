@@ -13,7 +13,15 @@ export type MainCourseType =
   | "Bacon"
   | "Chicken Salami"
   | "Baked Beans"
-  | "Bread Toast";
+  | "Bread Toast"
+  | "Rice"
+  | "Coconut Roty"
+  | "Parata"
+  | "Chapathi"
+  | "Dhal Curry"
+  | "Mix Veg Curry"
+  | "Coconut Sambol"
+  | "Egg Curry";
 
 export type EggStyle = 
   | "Omelet"
