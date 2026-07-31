@@ -673,38 +673,14 @@ export default function GuestMenuPage() {
 
                     <div className="mt-4 pt-4 border-t border-[var(--stone-100)]">
                       <label className="flex items-center space-x-3 cursor-pointer group mb-3">
-                        <div onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })} className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.includesSriLankanMeals ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)]'}`}>
-                          {currentGuest.includesSriLankanMeals && <span className="text-white text-xs">✓</span>}
-                        </div>
-                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })}>Sri Lankan Meals</span>
-                      </label>
-
-                      {currentGuest.includesSriLankanMeals && (
-                        <div className="pl-8 border-l-2 border-[var(--stone-100)] ml-2 mb-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {SRI_LANKAN_MAINS.map((main) => (
-                              <label key={main} onClick={() => toggleMain(main)} className="flex items-center space-x-3 cursor-pointer group">
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.selectedMains.includes(main) ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)] group-hover:border-[var(--accent-gold)]'}`}>
-                                  {currentGuest.selectedMains.includes(main) && <span className="text-white text-xs">✓</span>}
-                                </div>
-                                <span className="text-[var(--stone-900)] text-sm">{main}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="flex items-center space-x-3 cursor-pointer group mb-3">
                         <div onClick={() => updateCurrentGuest({ includesEggs: !currentGuest.includesEggs })} className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.includesEggs ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)]'}`}>
                           {currentGuest.includesEggs && <span className="text-white text-xs">✓</span>}
                         </div>
-                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesEggs: !currentGuest.includesEggs })}>Include Eggs</span>
+                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesEggs: !currentGuest.includesEggs })}>Eggs</span>
                       </label>
 
                       {currentGuest.includesEggs && (
-                        <div className="pl-8 border-l-2 border-[var(--stone-100)] ml-2">
+                        <div className="pl-8 border-l-2 border-[var(--stone-100)] ml-2 mb-4">
                           <select 
                             value={currentGuest.eggStyle}
                             onChange={(e) => updateCurrentGuest({ eggStyle: e.target.value as EggStyle })}
@@ -729,6 +705,30 @@ export default function GuestMenuPage() {
                             onChange={(e) => updateCurrentGuest({ eggNotes: e.target.value })}
                             className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
                           />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-[var(--stone-100)]">
+                      <label className="flex items-center space-x-3 cursor-pointer group mb-3">
+                        <div onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })} className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.includesSriLankanMeals ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)]'}`}>
+                          {currentGuest.includesSriLankanMeals && <span className="text-white text-xs">✓</span>}
+                        </div>
+                        <span className="text-sm font-medium text-[var(--stone-800)]" onClick={() => updateCurrentGuest({ includesSriLankanMeals: !currentGuest.includesSriLankanMeals })}>Sri Lankan Meals</span>
+                      </label>
+
+                      {currentGuest.includesSriLankanMeals && (
+                        <div className="pl-8 border-l-2 border-[var(--stone-100)] ml-2 mb-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {SRI_LANKAN_MAINS.map((main) => (
+                              <label key={main} onClick={() => toggleMain(main)} className="flex items-center space-x-3 cursor-pointer group">
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${currentGuest.selectedMains.includes(main) ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)] group-hover:border-[var(--accent-gold)]'}`}>
+                                  {currentGuest.selectedMains.includes(main) && <span className="text-white text-xs">✓</span>}
+                                </div>
+                                <span className="text-[var(--stone-900)] text-sm">{main}</span>
+                              </label>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
