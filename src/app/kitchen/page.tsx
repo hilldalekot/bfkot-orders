@@ -1340,7 +1340,7 @@ export default function KitchenDashboard() {
                             <div className="p-4 flex-1 space-y-4">
                               <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                                 <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900 mb-2">Packed Breakfast</h4>
-                                <p className="text-sm font-semibold text-blue-800">{driverMeals}x Sandwich (Any)</p>
+                                <p className="text-sm font-semibold text-blue-800">{driverMeals}x Sandwich</p>
                                 {driverNotes.length > 0 && (
                                   <div className="mt-3 pt-3 border-t border-blue-200">
                                     {driverNotes.map((note, idx) => (
