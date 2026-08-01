@@ -1018,6 +1018,11 @@ export default function KitchenDashboard() {
                                       <li key={s}>{s === "Fruit Platter" && order.isKidFruitPlatter ? "Fruit Platter (Kid's Portion)" : s}</li>
                                     ))}
                                   </ul>
+                                  {order.starterNotes && (
+                                    <p className="text-sm text-[var(--stone-900)] mt-2">
+                                      Note: <span className="font-semibold">{order.starterNotes}</span>
+                                    </p>
+                                  )}
                                 </div>
                               )}
 

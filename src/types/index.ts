@@ -61,6 +61,7 @@ export interface Order {
   packedIncludesYoghurt?: boolean;
   packedIncludesWater?: boolean;
   starters: StarterType[];
+  starterNotes?: string;
   mains: MainCourseType[];
   toastSlices?: number;
   includesButter?: boolean;

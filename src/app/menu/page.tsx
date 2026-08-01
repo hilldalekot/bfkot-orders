@@ -69,6 +69,7 @@ const ROOMS = ["101", "102", "103", "201", "202", "301", "302"];
 type GuestOrderDraft = {
   guestName: string;
   selectedStarters: StarterType[];
+  starterNotes: string;
   selectedMains: MainCourseType[];
   toastSlices: number;
   includesButter: boolean;
@@ -94,6 +95,7 @@ type GuestOrderDraft = {
 const defaultGuestOrder = (index: number): GuestOrderDraft => ({
   guestName: `Guest ${index + 1}`,
   selectedStarters: [],
+  starterNotes: "",
   selectedMains: [],
   toastSlices: 4,
   includesButter: true,
@@ -379,6 +381,7 @@ export default function GuestMenuPage() {
         packedIncludesYoghurt: go.isPackedBreakfast ? go.packedIncludesYoghurt : undefined,
         packedIncludesWater: go.isPackedBreakfast ? go.packedIncludesWater : undefined,
         starters: go.isPackedBreakfast ? [] : go.selectedStarters,
+        starterNotes: go.isPackedBreakfast ? undefined : go.starterNotes,
         mains: go.isPackedBreakfast ? [] : go.selectedMains,
         toastSlices: go.isPackedBreakfast ? undefined : go.toastSlices,
         includesButter: go.isPackedBreakfast ? undefined : go.includesButter,
@@ -648,6 +651,16 @@ export default function GuestMenuPage() {
                           )}
                         </div>
                       ))}
+                    </div>
+                    
+                    <div className="mt-4">
+                      <DebouncedInput 
+                        type="text"
+                        value={currentGuest.starterNotes}
+                        onDebouncedChange={(val) => updateCurrentGuest({ starterNotes: val })}
+                        className="w-full bg-white border border-[var(--stone-200)] rounded-xl py-3 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] focus:border-transparent transition-all shadow-sm"
+                        placeholder="Any notes for starters? (e.g. No sugar, extra fruit)"
+                      />
                     </div>
                   </section>
 
