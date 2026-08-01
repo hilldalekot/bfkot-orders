@@ -912,8 +912,11 @@ export default function KitchenDashboard() {
                       {roomOrders[0]?.breakfastTime && (
                         <div className="text-right">
                           <p className="text-xs text-[var(--stone-400)] uppercase tracking-wider">Requested Time</p>
-                          <p className="text-lg font-medium text-[var(--accent-gold)]">
+                          <p className="text-lg font-medium text-[var(--accent-gold)] leading-tight">
                             {new Date(roomOrders[0].breakfastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          <p className="text-[10px] text-[var(--stone-400)] font-medium">
+                            {new Date(roomOrders[0].breakfastTime).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
                           </p>
                         </div>
                       )}
