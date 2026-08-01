@@ -342,40 +342,45 @@ export default function KitchenDashboard() {
     
     type TimeSlotData = { timeMs: number, a: number, k: number, type: string, timeStr: string, rooms: Set<string> };
     const timeSlots: Record<string, TimeSlotData> = {};
-    const roomProcessedForTime = new Set<string>();
-    
-    const addToSlot = (timeMs: number, timeStr: string, room: string, isPacked: boolean) => {
-      const typeStr = isPacked ? 'Take Away' : 'Dine-In';
-      const key = `${timeStr}|${typeStr}`;
-      if (!timeSlots[key]) {
-        timeSlots[key] = { timeMs, a: 0, k: 0, type: typeStr, timeStr, rooms: new Set() };
-      }
-      
-      const roomKey = `${room}|${key}`;
-      if (!roomProcessedForTime.has(roomKey)) {
-        roomProcessedForTime.add(roomKey);
-        timeSlots[key].a += (occupancy[room]?.guests || 2);
-        timeSlots[key].k += (occupancy[room]?.kids || 0);
-        timeSlots[key].rooms.add(room);
-      }
-    };
+    const roomsWithOrders = new Set<string>();
 
     orders.forEach(o => {
       const timeMs = o.breakfastTime ? new Date(o.breakfastTime).getTime() : 0;
       if (timeMs === 0) return;
       const timeStr = new Date(timeMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      addToSlot(timeMs, timeStr, o.roomNumber, !!(o.isPackedBreakfast || (o.driverPackedBreakfasts && o.driverPackedBreakfasts > 0)));
+      const typeStr = (o.isPackedBreakfast || (o.driverPackedBreakfasts && o.driverPackedBreakfasts > 0)) ? 'Take Away' : 'Dine-In';
+      const key = `${timeStr}|${typeStr}`;
+      
+      if (!timeSlots[key]) {
+        timeSlots[key] = { timeMs, a: 0, k: 0, type: typeStr, timeStr, rooms: new Set() };
+      }
+      
+      if (o.isKidFruitPlatter) {
+        timeSlots[key].k += 1;
+      } else {
+        timeSlots[key].a += 1;
+      }
+      timeSlots[key].rooms.add(o.roomNumber);
+      roomsWithOrders.add(o.roomNumber);
     });
     
     ROOM_NUMBERS.forEach(room => {
-      const roomOrders = orders.filter(o => o.roomNumber === room);
-      if (roomOrders.length === 0 && occupancy[room]?.occupied && occupancy[room]?.time) {
+      if (!roomsWithOrders.has(room) && occupancy[room]?.occupied && occupancy[room]?.time) {
         const [h, m] = occupancy[room].time.split(':');
         const d = new Date();
         d.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
         const timeMs = d.getTime();
         const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        addToSlot(timeMs, timeStr, room, false);
+        
+        const typeStr = 'Dine-In';
+        const key = `${timeStr}|${typeStr}`;
+        if (!timeSlots[key]) {
+          timeSlots[key] = { timeMs, a: 0, k: 0, type: typeStr, timeStr, rooms: new Set() };
+        }
+        
+        timeSlots[key].a += (occupancy[room].guests || 2);
+        timeSlots[key].k += (occupancy[room].kids || 0);
+        timeSlots[key].rooms.add(room);
       }
     });
     
