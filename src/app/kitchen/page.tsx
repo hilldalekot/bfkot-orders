@@ -325,8 +325,8 @@ export default function KitchenDashboard() {
             text += `• ${o.guestName}: ${o.packedSandwichChoice}: *1*${extrasStr}${dietaryNote}\n`;
           }
           if (o.driverPackedBreakfasts && o.driverPackedBreakfasts > 0) {
-            driverPacked += o.driverPackedBreakfasts;
-            if (o.driverBreakfastNotes) {
+            driverPacked = Math.max(driverPacked, o.driverPackedBreakfasts);
+            if (o.driverBreakfastNotes && !driverNotes.includes(o.driverBreakfastNotes)) {
               driverNotes.push(o.driverBreakfastNotes);
             }
           }
@@ -1199,15 +1199,6 @@ export default function KitchenDashboard() {
                               {order.dietaryNotes && (
                                 <p className="text-xs text-red-600 font-bold mt-1">⚠️ {order.dietaryNotes}</p>
                               )}
-                              {order.driverPackedBreakfasts ? (
-                                <div className="mt-3 pt-3 border-t border-blue-200">
-                                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-blue-900 mb-1">Driver Meals</h4>
-                                  <p className="text-sm font-semibold text-blue-800">{order.driverPackedBreakfasts}x Sandwich</p>
-                                  {order.driverBreakfastNotes && (
-                                    <p className="text-xs text-red-600 font-bold mt-1">⚠️ {order.driverBreakfastNotes}</p>
-                                  )}
-                                </div>
-                              ) : null}
                             </div>
                           ) : (
                             <>
@@ -1334,6 +1325,39 @@ export default function KitchenDashboard() {
                         </div>
                       </div>
                     ))}
+                    
+                    {(() => {
+                      const driverMeals = Math.max(0, ...roomOrders.map(o => o.driverPackedBreakfasts || 0));
+                      const driverNotes = Array.from(new Set(roomOrders.map(o => o.driverBreakfastNotes).filter(Boolean)));
+                      
+                      if (driverMeals > 0) {
+                        return (
+                          <div className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] flex flex-col">
+                            <div className="p-4 border-b border-[var(--stone-100)] flex justify-between items-center">
+                              <p className="font-medium text-[var(--stone-900)]">Driver Meals</p>
+                              <div className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-full tracking-wider">PACKED</div>
+                            </div>
+                            <div className="p-4 flex-1 space-y-4">
+                              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900 mb-2">Packed Breakfast</h4>
+                                <p className="text-sm font-semibold text-blue-800">{driverMeals}x Sandwich (Any)</p>
+                                {driverNotes.length > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-blue-200">
+                                    {driverNotes.map((note, idx) => (
+                                      <p key={idx} className="text-xs text-red-600 font-bold mt-1">⚠️ {note}</p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="p-3 bg-[var(--stone-50)] border-t border-[var(--stone-100)] rounded-b-xl flex items-center justify-center">
+                              <span className="text-xs text-[var(--stone-500)]">Prepared alongside main order</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                 </div>
               );
