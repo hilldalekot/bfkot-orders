@@ -598,7 +598,7 @@ export default function GuestMenuPage() {
                 <div className="flex justify-between items-center border-b border-[var(--stone-200)] pb-4">
                   <div>
                     <h2 className="text-2xl font-light text-[var(--stone-900)]">Guest {currentGuestIndex + 1} of {guestCount}</h2>
-                    <p className="text-[var(--stone-600)] text-sm mt-1">Room {roomNumber}</p>
+                    <p className="text-2xl font-light text-[var(--stone-600)] mt-1">Room {roomNumber}</p>
                   </div>
                   <button onClick={prevGuest} className="text-sm font-medium text-[var(--stone-500)] hover:text-[var(--stone-900)] transition-colors self-start mt-1">
                     &larr; Back
