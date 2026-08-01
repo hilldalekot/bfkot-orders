@@ -194,8 +194,39 @@ export default function KitchenDashboard() {
 
   const confirmAndShareWhatsApp = () => {
     setShowWhatsAppModal(false);
-    const { starters, packed, slGroups, packedBananas, packedYoghurts, packedWaters, driverPacked } = generateProductionSummary();
-    let text = `*Kitchen Production Summary*\n_Date: ${new Date().toLocaleDateString()}_\n\n`;
+    const { starters, slGroups } = generateProductionSummary();
+    
+    let earliestTime = Infinity;
+    let firstOrderString = "None";
+    
+    orders.forEach(o => {
+      if (o.breakfastTime) {
+        const timeMs = new Date(o.breakfastTime).getTime();
+        if (!isNaN(timeMs) && timeMs < earliestTime) {
+          earliestTime = timeMs;
+          const timeFormatted = new Date(o.breakfastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const typeStr = o.isPackedBreakfast ? "Take Away" : "Dine-In";
+          firstOrderString = `${timeFormatted} and Room ${o.roomNumber} and ${typeStr}`;
+        }
+      }
+    });
+    
+    ROOM_NUMBERS.forEach(room => {
+      const roomOrders = orders.filter(o => o.roomNumber === room);
+      if (roomOrders.length === 0 && occupancy[room]?.occupied && occupancy[room]?.time) {
+        const [h, m] = occupancy[room].time.split(':');
+        const d = new Date();
+        d.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+        const timeMs = d.getTime();
+        if (!isNaN(timeMs) && timeMs < earliestTime) {
+          earliestTime = timeMs;
+          const timeFormatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          firstOrderString = `${timeFormatted} and Room ${room} and Dine-In`;
+        }
+      }
+    });
+
+    let text = `*Kitchen Production Summary*\nDate: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}\nFirst Order : ${firstOrderString}\n\n`;
     
     text += `*STARTERS (Dine-In)*\n`;
     const starterKeys = Object.keys(starters).sort();
@@ -203,7 +234,7 @@ export default function KitchenDashboard() {
       text += `_No starters required._\n`;
     } else {
       starterKeys.forEach(k => {
-        text += `• ${k}: *${starters[k]}*\n`;
+        text += `• ${k}: ${starters[k]}\n`;
       });
     }
 
@@ -213,7 +244,8 @@ export default function KitchenDashboard() {
       slGroupsKeys.forEach(key => {
         const [room, timeStr] = key.split('|');
         const groupOrders = slGroups[key];
-        text += `_Room ${room}, ${timeStr}_\n`;
+        text += `Room ${room}, ${timeStr}\n`;
+        let roomNote = "";
         groupOrders.forEach(o => {
           let items: string[] = [];
           if (o.mains) {
@@ -224,95 +256,107 @@ export default function KitchenDashboard() {
             });
           }
           let itemsStr = items.join(', ');
-          if (o.sriLankanNotes) {
-            itemsStr += itemsStr ? `, Note: ${o.sriLankanNotes}` : `Note: ${o.sriLankanNotes}`;
+          if (itemsStr) {
+            text += `• ${o.guestName}: ${itemsStr}\n`;
           }
-          text += `• ${o.guestName}: ${itemsStr}\n`;
+          if (o.sriLankanNotes) {
+            roomNote = o.sriLankanNotes;
+          }
         });
+        if (roomNote) {
+          text += `Note: ${roomNote}\n`;
+        }
       });
     }
     
-    const packedKeys = Object.keys(packed).sort();
-    if (packedKeys.length > 0 || driverPacked > 0) {
-      text += `\n*PACKED BREAKFASTS*\n`;
-      
-      // Group packed breakfasts by Room + Time
-      const packedGroups = orders.reduce((acc, order) => {
-        if (!order.isPackedBreakfast && !(order.driverPackedBreakfasts && order.driverPackedBreakfasts > 0)) {
-          return acc;
-        }
-        const timeStr = order.breakfastTime ? new Date(order.breakfastTime).toLocaleString([], { timeStyle: 'short' }) : 'Time not specified';
-        const key = `${order.roomNumber}|${timeStr}`;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(order);
+    const packedGroups = orders.reduce((acc, order) => {
+      if (!order.isPackedBreakfast && !(order.driverPackedBreakfasts && order.driverPackedBreakfasts > 0)) {
         return acc;
-      }, {} as Record<string, Order[]>);
+      }
+      const timeStr = order.breakfastTime ? new Date(order.breakfastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time not specified';
+      const key = `${order.roomNumber}|${timeStr}`;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(order);
+      return acc;
+    }, {} as Record<string, Order[]>);
 
-      Object.keys(packedGroups).sort().forEach(key => {
+    const packedKeys = Object.keys(packedGroups).sort();
+    if (packedKeys.length > 0) {
+      text += `\n*PACKED BREAKFASTS*\n\n`;
+      packedKeys.forEach(key => {
         const [room, timeStr] = key.split('|');
         const groupOrders = packedGroups[key];
         
-        text += `\n*Room ${room}, ${timeStr}*\n`;
+        text += `*Room ${room}, ${timeStr}*\n`;
         
-        const roomPackedCounts: Record<string, number> = {};
         let driverPacked = 0;
-        let driverNotes = "";
         
         groupOrders.forEach(o => {
           if (o.isPackedBreakfast && o.packedSandwichChoice) {
-            roomPackedCounts[o.packedSandwichChoice] = (roomPackedCounts[o.packedSandwichChoice] || 0) + 1;
+            let extras = [];
+            if (o.packedIncludesBanana) extras.push("Bananas: *1*");
+            if (o.packedIncludesYoghurt) extras.push("Yoghurts: *1*");
+            if (o.packedIncludesWater) extras.push("Water: *1*");
+            const extrasStr = extras.length > 0 ? ` ${extras.join(' ')}` : "";
+            text += `• ${o.guestName}: ${o.packedSandwichChoice}: *1*${extrasStr}\n`;
           }
           if (o.driverPackedBreakfasts && o.driverPackedBreakfasts > 0) {
             driverPacked = o.driverPackedBreakfasts;
-            if (o.driverBreakfastNotes) driverNotes = o.driverBreakfastNotes;
           }
-        });
-        
-        Object.keys(roomPackedCounts).sort().forEach(k => {
-          text += `• ${k}: *${roomPackedCounts[k]}*\n`;
         });
         
         if (driverPacked > 0) {
-          text += `• Driver sandwich: *${driverPacked}*`;
-          if (driverNotes) {
-            text += ` (${driverNotes})`;
-          }
-          text += `\n`;
+          text += `\n• Driver sandwich: *${driverPacked}* (any sand)\n`;
         }
-      });
-
-      text += `\n*Packed Extras Needed*\n`;
-      text += `• Bananas: *${packedBananas}*\n`;
-      text += `• Yoghurts: *${packedYoghurts}*\n`;
-      text += `• Bottles of Water: *${packedWaters}*\n`;
-    }
-    
-    const defaultRooms = ROOM_NUMBERS.filter(room => {
-      const roomOrders = orders.filter(o => o.roomNumber === room);
-      return roomOrders.length === 0 && occupancy[room]?.occupied;
-    });
-
-    if (defaultRooms.length > 0) {
-      text += `\n*EXPECTED DINE-IN BREAKFASTS (NO EXPLICIT ORDER)*\n`;
-      defaultRooms.forEach(room => {
-        const occ = occupancy[room];
-        let timeStr = 'Time not specified';
-        if (occ.time) {
-          const [h, m] = occ.time.split(':');
-          const d = new Date();
-          d.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
-          timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-        const typeStr = occ.type || 'English';
-        text += `• Room ${room}: ${typeStr} @ ${timeStr} (${occ.guests || 2} Guests, ${occ.kids || 0} Kids)`;
-        if (occ.note) text += ` - Note: ${occ.note}`;
         text += `\n`;
       });
     }
+    
+    text += `*EXTRA MEALS*\n`;
+    text += `• Driver Meals: ${extraMeals.drivers}\n`;
+    text += `• Staff Meals: ${extraMeals.staff}\n`;
+    
+    text += `\n*TIME SLOTS*\n`;
+    
+    type TimeSlotData = { timeMs: number, a: number, k: number, type: string, timeStr: string, rooms: Set<string> };
+    const timeSlots: Record<string, TimeSlotData> = {};
+    
+    const addToSlot = (timeMs: number, timeStr: string, room: string, a: number, k: number, isPacked: boolean) => {
+      const typeStr = isPacked ? 'Take Away' : 'Dine-In';
+      const key = `${timeStr}|${typeStr}`;
+      if (!timeSlots[key]) {
+        timeSlots[key] = { timeMs, a: 0, k: 0, type: typeStr, timeStr, rooms: new Set() };
+      }
+      timeSlots[key].a += a;
+      timeSlots[key].k += k;
+      timeSlots[key].rooms.add(room);
+    };
 
-    text += `\n*EXTRA MEALS*\n`;
-    text += `• Driver Meals: *${extraMeals.drivers}*\n`;
-    text += `• Staff Meals: *${extraMeals.staff}*\n`;
+    orders.forEach(o => {
+      const timeMs = o.breakfastTime ? new Date(o.breakfastTime).getTime() : 0;
+      if (timeMs === 0) return;
+      const timeStr = new Date(timeMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const k = o.isKidFruitPlatter ? 1 : 0;
+      addToSlot(timeMs, timeStr, o.roomNumber, 1, k, !!o.isPackedBreakfast);
+    });
+    
+    ROOM_NUMBERS.forEach(room => {
+      const roomOrders = orders.filter(o => o.roomNumber === room);
+      if (roomOrders.length === 0 && occupancy[room]?.occupied && occupancy[room]?.time) {
+        const [h, m] = occupancy[room].time.split(':');
+        const d = new Date();
+        d.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
+        const timeMs = d.getTime();
+        const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        addToSlot(timeMs, timeStr, room, occupancy[room].guests || 2, occupancy[room].kids || 0, false);
+      }
+    });
+    
+    const sortedSlots = Object.values(timeSlots).sort((a, b) => a.timeMs - b.timeMs);
+    sortedSlots.forEach(slot => {
+      const roomsStr = Array.from(slot.rooms).sort().join(', ');
+      text += `${slot.timeStr} - A(${slot.a}) K(${slot.k}) Room ${roomsStr}  ${slot.type}\n`;
+    });
     
     text += `\n_Includes actual orders + default menu for occupied rooms without orders._`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
