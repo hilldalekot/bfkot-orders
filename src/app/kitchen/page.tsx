@@ -36,6 +36,7 @@ export default function KitchenDashboard() {
   const [extraMeals, setExtraMeals] = useState<{ drivers: number; staff: number }>({ drivers: 0, staff: 0 });
   const [filterTab, setFilterTab] = useState<'active' | 'completed'>('active');
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [isOccupancyEditMode, setIsOccupancyEditMode] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, "orders"));
@@ -642,7 +643,33 @@ export default function KitchenDashboard() {
             <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-10 bg-[var(--stone-50)]">
               {/* Room Occupancy Matrix */}
               <div>
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-4 border-b border-[var(--stone-200)] pb-2">Room Occupancy</h3>
+                <div className="flex justify-between items-center mb-4 border-b border-[var(--stone-200)] pb-2">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--stone-800)]">Room Occupancy</h3>
+                  <button 
+                    onClick={() => setIsOccupancyEditMode(!isOccupancyEditMode)}
+                    className={`text-xs font-medium px-3 py-1 rounded transition-colors flex items-center gap-1.5 ${
+                      isOccupancyEditMode 
+                        ? 'bg-green-600 text-white shadow-sm hover:bg-green-700' 
+                        : 'bg-white border border-[var(--stone-300)] text-[var(--stone-600)] hover:bg-[var(--stone-100)]'
+                    }`}
+                  >
+                    {isOccupancyEditMode ? (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Save & Lock
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                        Edit Occupancy
+                      </>
+                    )}
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {ROOM_NUMBERS.map(room => {
                     const roomOrders = orders.filter(o => o.roomNumber === room);
@@ -658,9 +685,10 @@ export default function KitchenDashboard() {
                             type="checkbox" 
                             checked={occupancy[room]?.occupied || false}
                             onChange={(e) => updateOccupancy(room, 'occupied', e.target.checked)}
-                            className="w-4 h-4 text-[var(--accent-gold)] focus:ring-[var(--accent-gold)] rounded border-[var(--stone-300)]"
+                            disabled={!isOccupancyEditMode}
+                            className={`w-4 h-4 text-[var(--accent-gold)] focus:ring-[var(--accent-gold)] rounded border-[var(--stone-300)] ${!isOccupancyEditMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                           />
-                          <span className="font-medium text-[var(--stone-900)]">Room {room}</span>
+                          <span className={`font-medium ${!isOccupancyEditMode ? 'text-[var(--stone-500)]' : 'text-[var(--stone-900)]'}`}>Room {room}</span>
                         </label>
                         {hasOrder ? (
                           <div className="flex items-center space-x-2">
@@ -674,12 +702,14 @@ export default function KitchenDashboard() {
                                 type="time" 
                                 value={occupancy[room]?.time || ''} 
                                 onChange={(e) => updateOccupancy(room, 'time', e.target.value)}
-                                className="text-[10px] bg-[var(--stone-100)] border border-[var(--stone-200)] rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                                disabled={!isOccupancyEditMode}
+                                className={`text-[10px] bg-[var(--stone-100)] border border-[var(--stone-200)] rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] ${!isOccupancyEditMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                               />
                               <select 
                                 value={occupancy[room]?.type || 'English'} 
                                 onChange={(e) => updateOccupancy(room, 'type', e.target.value)}
-                                className="text-[10px] bg-[var(--stone-100)] border border-[var(--stone-200)] rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                                disabled={!isOccupancyEditMode}
+                                className={`text-[10px] bg-[var(--stone-100)] border border-[var(--stone-200)] rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] ${!isOccupancyEditMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                               >
                                 <option value="English">English</option>
                                 <option value="Sri Lankan">Sri Lankan</option>
@@ -696,37 +726,43 @@ export default function KitchenDashboard() {
                             <div className="flex items-center space-x-2">
                               <button 
                                 onClick={() => updateOccupancy(room, 'guests', Math.max(1, (occupancy[room].guests || 2) - 1))}
-                                className="w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] hover:bg-[var(--stone-200)] flex items-center justify-center font-medium"
+                                disabled={!isOccupancyEditMode}
+                                className={`w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] flex items-center justify-center font-medium ${isOccupancyEditMode ? 'hover:bg-[var(--stone-200)]' : 'opacity-50 cursor-not-allowed'}`}
                               >-</button>
-                              <span className="text-sm font-medium w-4 text-center">{occupancy[room].guests || 2}</span>
+                              <span className="text-sm font-semibold w-4 text-center">{occupancy[room].guests || 2}</span>
                               <button 
                                 onClick={() => updateOccupancy(room, 'guests', (occupancy[room].guests || 2) + 1)}
-                                className="w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] hover:bg-[var(--stone-200)] flex items-center justify-center font-medium"
+                                disabled={!isOccupancyEditMode}
+                                className={`w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] flex items-center justify-center font-medium ${isOccupancyEditMode ? 'hover:bg-[var(--stone-200)]' : 'opacity-50 cursor-not-allowed'}`}
                               >+</button>
                             </div>
                           </div>
                           
                           <div className="flex items-center justify-between pl-6">
-                            <span className="text-xs text-[var(--stone-500)]">Kids:</span>
+                            <span className="text-xs text-[var(--stone-500)]">Kids (Fruit Platter):</span>
                             <div className="flex items-center space-x-2">
                               <button 
                                 onClick={() => updateOccupancy(room, 'kids', Math.max(0, (occupancy[room].kids || 0) - 1))}
-                                className="w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] hover:bg-[var(--stone-200)] flex items-center justify-center font-medium"
+                                disabled={!isOccupancyEditMode}
+                                className={`w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] flex items-center justify-center font-medium ${isOccupancyEditMode ? 'hover:bg-[var(--stone-200)]' : 'opacity-50 cursor-not-allowed'}`}
                               >-</button>
-                              <span className="text-sm font-medium w-4 text-center">{occupancy[room].kids || 0}</span>
+                              <span className="text-sm font-semibold w-4 text-center">{occupancy[room].kids || 0}</span>
                               <button 
                                 onClick={() => updateOccupancy(room, 'kids', (occupancy[room].kids || 0) + 1)}
-                                className="w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] hover:bg-[var(--stone-200)] flex items-center justify-center font-medium"
+                                disabled={!isOccupancyEditMode}
+                                className={`w-6 h-6 rounded bg-[var(--stone-100)] text-[var(--stone-600)] flex items-center justify-center font-medium ${isOccupancyEditMode ? 'hover:bg-[var(--stone-200)]' : 'opacity-50 cursor-not-allowed'}`}
                               >+</button>
                             </div>
                           </div>
-                          <div className="pl-6 pt-1">
+                          
+                          <div className="pl-6 mt-1">
                             <input 
-                              type="text"
-                              placeholder="Note (e.g. SL Meals)"
+                              type="text" 
+                              placeholder="Notes (e.g. no sugar)" 
                               value={occupancy[room]?.note || ''}
                               onChange={(e) => updateOccupancy(room, 'note', e.target.value)}
-                              className="w-full bg-white border border-[var(--stone-200)] rounded-md py-1.5 px-2 text-xs text-[var(--stone-700)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] placeholder:text-[var(--stone-400)]"
+                              disabled={!isOccupancyEditMode}
+                              className={`w-full text-[10px] bg-[var(--stone-50)] border border-[var(--stone-200)] rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] ${!isOccupancyEditMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                             />
                           </div>
                         </div>
