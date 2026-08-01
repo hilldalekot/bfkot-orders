@@ -65,7 +65,7 @@ export default function KitchenDashboard() {
           // Delete expired order
           deleteDoc(doc(db, "orders", docSnap.id)).catch(console.error);
         } else {
-          fetchedOrders.push({ id: docSnap.id, status: data.status || "Pending", createdAt: data.createdAt || createdTime.toISOString(), ...data });
+          fetchedOrders.push({ id: docSnap.id, ...data, status: data.status || "Pending", createdAt: data.createdAt || createdTime.toISOString() });
         }
       });
       setOrders(fetchedOrders);
