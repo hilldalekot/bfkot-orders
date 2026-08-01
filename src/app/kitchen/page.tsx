@@ -1182,7 +1182,15 @@ export default function KitchenDashboard() {
                             <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                               <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900 mb-2">Packed Breakfast</h4>
                               <p className="text-sm font-semibold text-blue-800 mb-1">{order.packedSandwichChoice}</p>
-                              <p className="text-xs text-blue-700">+ 1x Banana, 1x Yoghurt, 1x Water</p>
+                              {(() => {
+                                const extras = [];
+                                if (order.packedIncludesBanana) extras.push("1x Banana");
+                                if (order.packedIncludesYoghurt) extras.push("1x Yoghurt");
+                                if (order.packedIncludesWater) extras.push("1x Water");
+                                return extras.length > 0 ? (
+                                  <p className="text-xs text-blue-700">+ {extras.join(", ")}</p>
+                                ) : null;
+                              })()}
                             </div>
                           ) : (
                             <>
