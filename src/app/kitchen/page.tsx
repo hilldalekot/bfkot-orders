@@ -487,6 +487,9 @@ export default function KitchenDashboard() {
             eggText += ` (${order.friedEggStyle})`;
           }
           guestText += `Eggs: *${eggText}*\n`;
+          if (order.eggNotes) {
+            guestText += `Note: ${order.eggNotes}\n`;
+          }
         }
       }
 
@@ -509,7 +512,7 @@ export default function KitchenDashboard() {
       
       if (order.dietaryNotes) {
         hasAnyContent = true;
-        guestText += `\n*Notes*: ${order.dietaryNotes}\n`;
+        guestText += `\n*Notes for ${order.guestName}*: ${order.dietaryNotes}\n`;
       }
       
       if (hasAnyContent) {
