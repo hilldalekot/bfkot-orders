@@ -44,8 +44,11 @@ export default function KitchenDashboard() {
       const now = new Date();
       snapshot.forEach((docSnap) => {
         const data = docSnap.data() as Omit<Order, 'id'>;
-        const bTime = new Date(data.breakfastTime);
-        const createdTime = new Date(data.createdAt);
+        let bTime = new Date(data.breakfastTime);
+        if (isNaN(bTime.getTime())) bTime = now;
+        
+        let createdTime = new Date(data.createdAt);
+        if (isNaN(createdTime.getTime())) createdTime = new Date(bTime.getTime() - 12 * 60 * 60 * 1000); // 12h before breakfast
         
         const cutoffBreakfast = new Date(bTime);
         cutoffBreakfast.setHours(14, 0, 0, 0);
@@ -62,7 +65,7 @@ export default function KitchenDashboard() {
           // Delete expired order
           deleteDoc(doc(db, "orders", docSnap.id)).catch(console.error);
         } else {
-          fetchedOrders.push({ id: docSnap.id, ...data });
+          fetchedOrders.push({ id: docSnap.id, status: data.status || "Pending", createdAt: data.createdAt || createdTime.toISOString(), ...data });
         }
       });
       setOrders(fetchedOrders);
@@ -989,7 +992,9 @@ export default function KitchenDashboard() {
                         <div className="p-4 border-b border-[var(--stone-100)] flex justify-between items-center">
                           <p className="font-medium text-[var(--stone-900)]">{order.guestName}</p>
                           <div className="text-xs text-[var(--stone-500)]">
-                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {order.createdAt && !isNaN(new Date(order.createdAt).getTime()) 
+                              ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                              : "Time N/A"}
                           </div>
                         </div>
                         

@@ -391,8 +391,10 @@ export default function GuestMenuPage() {
         sriLankanNotes: (!go.isPackedBreakfast && go.includesSriLankanMeals) ? go.sriLankanNotes : undefined,
         eggNotes: (!go.isPackedBreakfast && go.includesEggs) ? go.eggNotes : undefined,
         dietaryNotes: go.dietaryNotes,
-        breakfastTime: new Date(`${breakfastDate}T${breakfastTime}`).toISOString(),
+        breakfastTime: new Date(`${breakfastDate || new Date().toISOString().split('T')[0]}T${breakfastTime || "07:30"}`).toISOString(),
         staffName: staffName || "Unknown Staff",
+        status: "Pending",
+        createdAt: new Date().toISOString(),
       }));
 
       const promises = payload.map(orderPayload => {
