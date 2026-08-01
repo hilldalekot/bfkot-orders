@@ -229,7 +229,25 @@ export default function KitchenDashboard() {
     let text = `*Kitchen Production Summary*\nDate: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}\nFirst Order : ${firstOrderString}\n\n`;
     
     text += `*STARTERS (Dine-In)*\n`;
-    const starterKeys = Object.keys(starters).sort();
+    const STARTER_ORDER = [
+      "Fruit Platter",
+      "Fruit Platter (Kid's Portion)",
+      "Yoghurt",
+      "Mixed Fruit Juice",
+      "Buns",
+      "Pastries",
+      "Waffles with Treacle",
+      "Cakes",
+      "Cereal with Milk"
+    ];
+    const starterKeys = Object.keys(starters).sort((a, b) => {
+      const indexA = STARTER_ORDER.indexOf(a);
+      const indexB = STARTER_ORDER.indexOf(b);
+      const weightA = indexA === -1 ? Infinity : indexA;
+      const weightB = indexB === -1 ? Infinity : indexB;
+      if (weightA === weightB) return a.localeCompare(b);
+      return weightA - weightB;
+    });
     if (starterKeys.length === 0) {
       text += `_No starters required._\n`;
     } else {
