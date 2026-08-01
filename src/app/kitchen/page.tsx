@@ -320,7 +320,8 @@ export default function KitchenDashboard() {
             if (o.packedIncludesYoghurt) extras.push("Yoghurts: *1*");
             if (o.packedIncludesWater) extras.push("Water: *1*");
             const extrasStr = extras.length > 0 ? ` ${extras.join(' ')}` : "";
-            text += `• ${o.guestName}: ${o.packedSandwichChoice}: *1*${extrasStr}\n`;
+            const dietaryNote = o.dietaryNotes ? ` (Note: ${o.dietaryNotes})` : "";
+            text += `• ${o.guestName}: ${o.packedSandwichChoice}: *1*${extrasStr}${dietaryNote}\n`;
           }
           if (o.driverPackedBreakfasts && o.driverPackedBreakfasts > 0) {
             driverPacked = o.driverPackedBreakfasts;
@@ -1190,6 +1191,12 @@ export default function KitchenDashboard() {
                                   <p className="text-xs text-blue-700">+ {extras.join(", ")}</p>
                                 ) : null;
                               })()}
+                              {order.driverPackedBreakfasts ? (
+                                <div className="mt-3 pt-3 border-t border-blue-200">
+                                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-blue-900 mb-1">Driver Meals</h4>
+                                  <p className="text-sm font-semibold text-blue-800">{order.driverPackedBreakfasts}x Sandwich</p>
+                                </div>
+                              ) : null}
                             </div>
                           ) : (
                             <>
