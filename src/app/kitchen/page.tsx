@@ -261,7 +261,9 @@ export default function KitchenDashboard() {
       text += `\n*SRI LANKAN MAINS (Dine-In)*\n`;
       slGroupsKeys.forEach(key => {
         const [room, timeStr] = key.split('|');
-        const groupOrders = slGroups[key];
+        const groupOrders = slGroups[key].sort((a, b) => {
+          return a.guestName.localeCompare(b.guestName, undefined, { numeric: true });
+        });
         text += `Room ${room}, ${timeStr}\n`;
         let roomNote = "";
         groupOrders.forEach(o => {
@@ -303,7 +305,9 @@ export default function KitchenDashboard() {
       text += `\n*PACKED BREAKFASTS*\n\n`;
       packedKeys.forEach(key => {
         const [room, timeStr] = key.split('|');
-        const groupOrders = packedGroups[key];
+        const groupOrders = packedGroups[key].sort((a, b) => {
+          return a.guestName.localeCompare(b.guestName, undefined, { numeric: true });
+        });
         
         text += `*Room ${room}, ${timeStr}*\n`;
         
@@ -338,24 +342,29 @@ export default function KitchenDashboard() {
     
     type TimeSlotData = { timeMs: number, a: number, k: number, type: string, timeStr: string, rooms: Set<string> };
     const timeSlots: Record<string, TimeSlotData> = {};
+    const roomProcessedForTime = new Set<string>();
     
-    const addToSlot = (timeMs: number, timeStr: string, room: string, a: number, k: number, isPacked: boolean) => {
+    const addToSlot = (timeMs: number, timeStr: string, room: string, isPacked: boolean) => {
       const typeStr = isPacked ? 'Take Away' : 'Dine-In';
       const key = `${timeStr}|${typeStr}`;
       if (!timeSlots[key]) {
         timeSlots[key] = { timeMs, a: 0, k: 0, type: typeStr, timeStr, rooms: new Set() };
       }
-      timeSlots[key].a += a;
-      timeSlots[key].k += k;
-      timeSlots[key].rooms.add(room);
+      
+      const roomKey = `${room}|${key}`;
+      if (!roomProcessedForTime.has(roomKey)) {
+        roomProcessedForTime.add(roomKey);
+        timeSlots[key].a += (occupancy[room]?.guests || 2);
+        timeSlots[key].k += (occupancy[room]?.kids || 0);
+        timeSlots[key].rooms.add(room);
+      }
     };
 
     orders.forEach(o => {
       const timeMs = o.breakfastTime ? new Date(o.breakfastTime).getTime() : 0;
       if (timeMs === 0) return;
       const timeStr = new Date(timeMs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const k = o.isKidFruitPlatter ? 1 : 0;
-      addToSlot(timeMs, timeStr, o.roomNumber, 1, k, !!o.isPackedBreakfast);
+      addToSlot(timeMs, timeStr, o.roomNumber, !!(o.isPackedBreakfast || (o.driverPackedBreakfasts && o.driverPackedBreakfasts > 0)));
     });
     
     ROOM_NUMBERS.forEach(room => {
@@ -366,7 +375,7 @@ export default function KitchenDashboard() {
         d.setHours(parseInt(h, 10), parseInt(m, 10), 0, 0);
         const timeMs = d.getTime();
         const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        addToSlot(timeMs, timeStr, room, occupancy[room].guests || 2, occupancy[room].kids || 0, false);
+        addToSlot(timeMs, timeStr, room, false);
       }
     });
     
