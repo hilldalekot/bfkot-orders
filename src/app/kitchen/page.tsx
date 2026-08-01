@@ -1050,12 +1050,19 @@ export default function KitchenDashboard() {
                                           </ul>
                                         )}
                                         {order.eggStyle && (
-                                          <p className="text-sm text-[var(--stone-900)] mt-2">
-                                            Eggs: <span className="font-semibold">{order.eggStyle}</span>
-                                            {order.eggStyle === "Fried Egg" && order.friedEggStyle && (
-                                              <span className="font-semibold"> ({order.friedEggStyle})</span>
+                                          <div className="mt-2">
+                                            <p className="text-sm text-[var(--stone-900)]">
+                                              Eggs: <span className="font-semibold">{order.eggStyle}</span>
+                                              {order.eggStyle === "Fried Egg" && order.friedEggStyle && (
+                                                <span className="font-semibold"> ({order.friedEggStyle})</span>
+                                              )}
+                                            </p>
+                                            {order.eggNotes && (
+                                              <p className="text-sm text-[var(--stone-900)] mt-1">
+                                                Note: <span className="font-semibold">{order.eggNotes}</span>
+                                              </p>
                                             )}
-                                          </p>
+                                          </div>
                                         )}
                                       </div>
                                     )}
