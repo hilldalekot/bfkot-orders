@@ -325,6 +325,56 @@ export default function KitchenDashboard() {
     }
   };
 
+  const handleEditTime = async (roomNumber: string, roomOrders: Order[]) => {
+    const staffName = localStorage.getItem("staffName");
+    if (!staffName) {
+      toast.error("You must be logged in to edit time.");
+      return;
+    }
+    const enteredPin = window.prompt(`Enter PIN for ${staffName} to edit time:`);
+    if (enteredPin === null) return;
+    
+    try {
+      const staffDoc = await getDoc(doc(db, "staff", staffName.toLowerCase()));
+      if (!staffDoc.exists() || staffDoc.data().pin !== enteredPin) {
+        toast.error("Incorrect PIN");
+        return;
+      }
+      
+      const currentTime = roomOrders[0]?.breakfastTime 
+        ? new Date(roomOrders[0].breakfastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) 
+        : '07:30';
+      
+      const newTime = window.prompt("Enter new time (HH:MM in 24-hour format):", currentTime);
+      if (newTime === null || newTime.trim() === '') return;
+      
+      const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+      if (!timeRegex.test(newTime)) {
+        toast.error("Invalid time format. Please use HH:MM (24-hour).");
+        return;
+      }
+      
+      const datePart = roomOrders[0]?.breakfastTime 
+        ? new Date(roomOrders[0].breakfastTime).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+        
+      const newDateTimeISO = new Date(`${datePart}T${newTime}`).toISOString();
+      
+      const promises = roomOrders.map(order => 
+        updateDoc(doc(db, "orders", order.id), { breakfastTime: newDateTimeISO })
+      );
+      
+      await toast.promise(Promise.all(promises), {
+        loading: 'Updating time...',
+        success: 'Time updated successfully!',
+        error: 'Failed to update time.'
+      });
+      
+    } catch (err: any) {
+      toast.error("An error occurred");
+    }
+  };
+
   const statusColors: Record<OrderStatus, string> = {
     Pending: "bg-amber-100 text-amber-800 border-amber-200",
     Preparing: "bg-blue-100 text-blue-800 border-blue-200",
@@ -914,8 +964,19 @@ export default function KitchenDashboard() {
                     <div className="flex items-center space-x-6 w-full sm:w-auto justify-between sm:justify-end">
                       {roomOrders[0]?.breakfastTime && (
                         <div className="text-right">
-                          <p className="text-xs text-[var(--stone-400)] uppercase tracking-wider">Requested Time</p>
-                          <p className="text-lg font-medium text-[var(--accent-gold)] leading-tight">
+                          <div className="flex items-center justify-end space-x-2">
+                            <p className="text-xs text-[var(--stone-400)] uppercase tracking-wider">Requested Time</p>
+                            <button 
+                              onClick={() => handleEditTime(roomNumber, roomOrders)}
+                              className="text-[var(--stone-400)] hover:text-[var(--accent-gold)] transition-colors"
+                              title="Edit Time"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
+                            </button>
+                          </div>
+                          <p className="text-lg font-medium text-[var(--accent-gold)] leading-tight mt-0.5">
                             {new Date(roomOrders[0].breakfastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                           <p className="text-[10px] text-[var(--stone-400)] font-medium">
