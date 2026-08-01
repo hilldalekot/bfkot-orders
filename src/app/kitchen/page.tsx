@@ -312,6 +312,7 @@ export default function KitchenDashboard() {
         text += `*Room ${room}, ${timeStr}*\n`;
         
         let driverPacked = 0;
+        let driverNotes: string[] = [];
         
         groupOrders.forEach(o => {
           if (o.isPackedBreakfast && o.packedSandwichChoice) {
@@ -324,12 +325,16 @@ export default function KitchenDashboard() {
             text += `• ${o.guestName}: ${o.packedSandwichChoice}: *1*${extrasStr}${dietaryNote}\n`;
           }
           if (o.driverPackedBreakfasts && o.driverPackedBreakfasts > 0) {
-            driverPacked = o.driverPackedBreakfasts;
+            driverPacked += o.driverPackedBreakfasts;
+            if (o.driverBreakfastNotes) {
+              driverNotes.push(o.driverBreakfastNotes);
+            }
           }
         });
         
         if (driverPacked > 0) {
-          text += `\n• Driver sandwich: *${driverPacked}* (any sand)\n`;
+          const notesStr = driverNotes.length > 0 ? ` (Notes: ${driverNotes.join(', ')})` : ` (any sand)`;
+          text += `\n• Driver sandwich: *${driverPacked}*${notesStr}\n`;
         }
         text += `\n`;
       });
@@ -1188,13 +1193,19 @@ export default function KitchenDashboard() {
                                 if (order.packedIncludesYoghurt) extras.push("1x Yoghurt");
                                 if (order.packedIncludesWater) extras.push("1x Water");
                                 return extras.length > 0 ? (
-                                  <p className="text-xs text-blue-700">+ {extras.join(", ")}</p>
+                                  <p className="text-xs text-blue-700 mt-1">+ {extras.join(", ")}</p>
                                 ) : null;
                               })()}
+                              {order.dietaryNotes && (
+                                <p className="text-xs text-red-600 font-bold mt-1">⚠️ {order.dietaryNotes}</p>
+                              )}
                               {order.driverPackedBreakfasts ? (
                                 <div className="mt-3 pt-3 border-t border-blue-200">
                                   <h4 className="text-[10px] font-bold uppercase tracking-wider text-blue-900 mb-1">Driver Meals</h4>
                                   <p className="text-sm font-semibold text-blue-800">{order.driverPackedBreakfasts}x Sandwich</p>
+                                  {order.driverBreakfastNotes && (
+                                    <p className="text-xs text-red-600 font-bold mt-1">⚠️ {order.driverBreakfastNotes}</p>
+                                  )}
                                 </div>
                               ) : null}
                             </div>
@@ -1296,7 +1307,7 @@ export default function KitchenDashboard() {
                             </>
                           )}
                           
-                          {order.dietaryNotes && (
+                          {order.dietaryNotes && !order.isPackedBreakfast && (
                             <div className="bg-red-50 p-3 rounded-lg border border-red-100 mt-2">
                               <h4 className="text-xs font-semibold uppercase tracking-wider text-red-800 mb-1 flex items-center">
                                 <span className="mr-1">⚠️</span> Dietary Notes
