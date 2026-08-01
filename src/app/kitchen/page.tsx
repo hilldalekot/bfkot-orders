@@ -334,7 +334,7 @@ export default function KitchenDashboard() {
       });
     }
     
-    text += `*EXTRA MEALS*\n`;
+    text += `\n*EXTRA MEALS*\n`;
     text += `• Driver Meals: ${extraMeals.drivers}\n`;
     text += `• Staff Meals: ${extraMeals.staff}\n`;
     
@@ -390,7 +390,6 @@ export default function KitchenDashboard() {
       text += `${slot.timeStr} - A(${slot.a}) K(${slot.k}) Room ${roomsStr}  ${slot.type}\n`;
     });
     
-    text += `\n_Includes actual orders + default menu for occupied rooms without orders._`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
