@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { StarterType, EggStyle, BeverageType, MainCourseType, FriedEggStyle, PackedSandwichType } from "@/types";
 import { db } from "@/lib/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { addDoc, collection } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import DebouncedInput from "@/components/DebouncedInput";
 import DebouncedTextarea from "@/components/DebouncedTextarea";
@@ -143,6 +144,7 @@ export default function GuestMenuPage() {
   const [error, setError] = useState("");
   const [waLinkUrl, setWaLinkUrl] = useState("");
   const [staffName, setStaffName] = useState<string>("");
+  const router = useRouter();
 
   useEffect(() => {
     const now = new Date();
@@ -174,10 +176,16 @@ export default function GuestMenuPage() {
     }
 
     const staff = localStorage.getItem("staffName");
+    const role = localStorage.getItem("staffRole");
+    if (role === "Kitchen Staff") {
+      router.push("/kitchen");
+      return;
+    }
+    
     if (staff) {
       setStaffName(staff);
     }
-  }, []);
+  }, [router]);
 
   const resetForm = () => {
     setStep(1);

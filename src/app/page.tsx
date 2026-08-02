@@ -10,8 +10,11 @@ export default function Home() {
 
   useEffect(() => {
     const staff = localStorage.getItem("staffName");
+    const role = localStorage.getItem("staffRole");
     if (!staff) {
       router.push("/login");
+    } else if (role === "Kitchen Staff") {
+      router.push("/kitchen");
     } else {
       setStaffName(staff);
     }

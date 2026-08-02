@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [editingStaff, setEditingStaff] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState("");
   const [pinInput, setPinInput] = useState("");
+  const [roleInput, setRoleInput] = useState<"F&B Staff" | "Kitchen Staff">("F&B Staff");
   
   // Master PIN change states
   const [newMasterPin, setNewMasterPin] = useState("");
@@ -40,7 +41,8 @@ export default function AdminPage() {
       const querySnapshot = await getDocs(q);
       const fetchedStaff: Staff[] = [];
       querySnapshot.forEach((docSnap) => {
-        fetchedStaff.push({ name: docSnap.data().name, pin: docSnap.data().pin });
+        const data = docSnap.data();
+        fetchedStaff.push({ name: data.name, pin: data.pin, role: data.role || "F&B Staff" });
       });
       setStaffMembers(fetchedStaff);
     } catch (err) {
@@ -103,6 +105,7 @@ export default function AdminPage() {
     setEditingStaff(null);
     setNameInput("");
     setPinInput("");
+    setRoleInput("F&B Staff");
     setError("");
   };
 
@@ -140,7 +143,8 @@ export default function AdminPage() {
       // Save or update doc using lowercased name as ID
       await setDoc(doc(db, "staff", nameInput.toLowerCase()), {
         name: nameInput,
-        pin: pinInput
+        pin: pinInput,
+        role: roleInput
       });
 
       await fetchStaff();
@@ -246,6 +250,22 @@ export default function AdminPage() {
                     placeholder="1234"
                   />
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-[var(--stone-500)] uppercase tracking-wider mb-1">Role</label>
+                  <div className="relative">
+                    <select
+                      value={roleInput}
+                      onChange={(e) => setRoleInput(e.target.value as any)}
+                      className="w-full appearance-none bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)] text-[var(--stone-900)] cursor-pointer"
+                    >
+                      <option value="F&B Staff">F&B Staff (Full Access)</option>
+                      <option value="Kitchen Staff">Kitchen Staff (View Only)</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[var(--stone-500)]">
+                      ▼
+                    </div>
+                  </div>
+                </div>
                 
                 {error && <p className="text-red-500 text-xs font-medium">{error}</p>}
                 
@@ -286,7 +306,7 @@ export default function AdminPage() {
                     <li key={staff.name} className="px-6 py-4 flex items-center justify-between hover:bg-[var(--stone-50)] transition-colors">
                       <div>
                         <p className="font-medium text-[var(--stone-900)]">{staff.name}</p>
-                        <p className="text-xs text-[var(--stone-500)] font-mono tracking-widest mt-1">PIN: ****</p>
+                        <p className="text-xs text-[var(--stone-500)] font-mono tracking-widest mt-1">PIN: **** <span className="ml-2 font-sans tracking-normal bg-[var(--stone-200)] px-2 py-0.5 rounded text-[10px] uppercase font-bold">{staff.role || "F&B Staff"}</span></p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <button 
@@ -294,6 +314,7 @@ export default function AdminPage() {
                             setEditingStaff(staff.name);
                             setNameInput(staff.name);
                             setPinInput(staff.pin);
+                            setRoleInput(staff.role || "F&B Staff");
                             setError("");
                           }}
                           className="px-3 py-1 bg-[var(--stone-100)] hover:bg-[var(--stone-200)] text-[var(--stone-700)] text-xs font-medium rounded-md transition-colors"

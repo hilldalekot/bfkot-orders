@@ -20,12 +20,17 @@ export default function LoginPage() {
         const querySnapshot = await getDocs(q);
         const fetchedStaff: Staff[] = [];
         querySnapshot.forEach((doc) => {
-          fetchedStaff.push({ name: doc.data().name, pin: doc.data().pin });
+          const data = doc.data();
+          fetchedStaff.push({ name: data.name, pin: data.pin, role: data.role || "F&B Staff" });
         });
         
         // Fallback to defaults if empty, just in case
         if (fetchedStaff.length === 0) {
-          fetchedStaff.push({ name: "John", pin: "1111" }, { name: "Sarah", pin: "2222" }, { name: "Mike", pin: "3333" });
+          fetchedStaff.push(
+            { name: "John", pin: "1111", role: "F&B Staff" },
+            { name: "Sarah", pin: "2222", role: "F&B Staff" },
+            { name: "Mike", pin: "3333", role: "Kitchen Staff" }
+          );
         }
         setStaffMembers(fetchedStaff);
       } catch (err) {
@@ -34,10 +39,15 @@ export default function LoginPage() {
     };
     loadStaff();
 
-    // If already logged in, redirect to home
+    // If already logged in, redirect to appropriate page
     const staff = localStorage.getItem("staffName");
+    const role = localStorage.getItem("staffRole");
     if (staff) {
-      router.push("/");
+      if (role === "Kitchen Staff") {
+        router.push("/kitchen");
+      } else {
+        router.push("/");
+      }
     }
   }, [router]);
 
@@ -58,7 +68,13 @@ export default function LoginPage() {
     }
 
     localStorage.setItem("staffName", staff.name);
-    router.push("/");
+    localStorage.setItem("staffRole", staff.role || "F&B Staff");
+    
+    if (staff.role === "Kitchen Staff") {
+      router.push("/kitchen");
+    } else {
+      router.push("/");
+    }
   };
 
   const handleKeypadPress = (num: string) => {

@@ -83,4 +83,5 @@ export interface Order {
 export interface Staff {
   name: string;
   pin: string;
+  role?: "F&B Staff" | "Kitchen Staff";
 }
