@@ -64,7 +64,7 @@ const FRIED_EGG_STYLES: FriedEggStyle[] = [
   "Over Hard"
 ];
 
-const ROOMS = ["101", "102", "103", "201", "202", "301", "302"];
+const ROOMS = ["101", "102", "103", "201", "202", "301", "302", "Walk-In"];
 
 type GuestOrderDraft = {
   guestName: string;
@@ -123,6 +123,7 @@ export default function GuestMenuPage() {
 
   // Step 1 State
   const [roomNumber, setRoomNumber] = useState("");
+  const [walkInIdentifier, setWalkInIdentifier] = useState("");
   const [guestCount, setGuestCount] = useState(2);
   const [orderType, setOrderType] = useState<'dine-in' | 'packed'>('dine-in');
   const [breakfastDate, setBreakfastDate] = useState("");
@@ -181,6 +182,7 @@ export default function GuestMenuPage() {
   const resetForm = () => {
     setStep(1);
     setRoomNumber("");
+    setWalkInIdentifier("");
     setGuestCount(2);
     setOrderType('dine-in');
     setGuestOrders([]);
@@ -191,6 +193,10 @@ export default function GuestMenuPage() {
   const startOrdering = () => {
     if (!roomNumber) {
       setError("Please select a room number.");
+      return;
+    }
+    if (roomNumber === "Walk-In" && !walkInIdentifier.trim()) {
+      setError("Please provide a name or table number for the Walk-In.");
       return;
     }
     if (!breakfastDate || !breakfastTime) {
@@ -260,10 +266,11 @@ export default function GuestMenuPage() {
   };
 
   const formatOrderForWhatsApp = () => {
+    const finalRoomNumber = roomNumber === "Walk-In" ? `Walk-In (${walkInIdentifier})` : roomNumber;
     const combinedTime = `${breakfastDate}T${breakfastTime}`;
     const timeFormatted = new Date(combinedTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
     let text = `*New Breakfast Order*\n`;
-    text += `Room: ${roomNumber}\n`;
+    text += `Room: ${finalRoomNumber}\n`;
     text += `Time: ${timeFormatted}\n`;
     text += `Guests: ${guestCount}\n\n`;
 
@@ -367,10 +374,11 @@ export default function GuestMenuPage() {
   const submitOrder = async () => {
     setIsSubmitting(true);
     setError("");
+    const finalRoomNumber = roomNumber === "Walk-In" ? `Walk-In (${walkInIdentifier})` : roomNumber;
 
     try {
       const payload = guestOrders.map(go => ({
-        roomNumber,
+        roomNumber: finalRoomNumber,
         guestName: go.guestName,
         orderType,
         driverPackedBreakfasts,
@@ -438,7 +446,7 @@ export default function GuestMenuPage() {
           </div>
           <h1 className="text-3xl font-light mb-4 text-[var(--stone-900)]">Order Sent!</h1>
           <p className="text-[var(--stone-800)] mb-8 text-lg font-light leading-relaxed">
-            Your order details for Room {roomNumber} have been saved directly to the Kitchen Dashboard.
+            Your order details for Room {roomNumber === "Walk-In" ? `Walk-In (${walkInIdentifier})` : roomNumber} have been saved directly to the Kitchen Dashboard.
           </p>
           <div className="flex flex-col space-y-3">
             <a 
@@ -516,6 +524,19 @@ export default function GuestMenuPage() {
                     </div>
                   </div>
                 </div>
+
+                {roomNumber === "Walk-In" && (
+                  <div className="animate-in fade-in slide-in-from-top-2">
+                    <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Walk-In Name / Table No.</label>
+                    <input 
+                      type="text"
+                      value={walkInIdentifier}
+                      onChange={(e) => setWalkInIdentifier(e.target.value)}
+                      placeholder="e.g. John Doe or Table 4"
+                      className="w-full bg-white border border-[var(--stone-200)] rounded-xl py-3 px-4 text-[var(--stone-900)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] focus:border-transparent shadow-sm"
+                    />
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
