@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { StarterType, EggStyle, BeverageType, MainCourseType, FriedEggStyle, PackedSandwichType } from "@/types";
 import { db } from "@/lib/firebase";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import DebouncedInput from "@/components/DebouncedInput";
@@ -144,6 +144,8 @@ export default function GuestMenuPage() {
   const [error, setError] = useState("");
   const [waLinkUrl, setWaLinkUrl] = useState("");
   const [staffName, setStaffName] = useState<string>("");
+  const [editMode, setEditMode] = useState(false);
+  const [editOrderId, setEditOrderId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -185,6 +187,77 @@ export default function GuestMenuPage() {
     if (staff) {
       setStaffName(staff);
     }
+
+    const loadEditOrder = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const editId = urlParams.get('editOrderId');
+      if (editId) {
+        try {
+          const docRef = doc(db, "orders", editId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setEditMode(true);
+            setEditOrderId(editId);
+            
+            // Set room/walkin
+            if (data.roomNumber.startsWith("Walk-In")) {
+              setRoomNumber("Walk-In");
+              setWalkInIdentifier(data.roomNumber.replace("Walk-In (", "").replace(")", ""));
+            } else {
+              setRoomNumber(data.roomNumber);
+            }
+            
+            // Time and date
+            if (data.breakfastTime) {
+              const dt = new Date(data.breakfastTime);
+              setBreakfastDate(getLocalDateString(dt));
+              setBreakfastTime(`${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`);
+            }
+
+            setOrderType(data.orderType || 'dine-in');
+            setDriverPackedBreakfasts(data.driverPackedBreakfasts || 0);
+            setDriverBreakfastNotes(data.driverBreakfastNotes || '');
+            setGuestCount(1); // Editing single guest
+
+            // Reconstruct GuestOrderDraft
+            const go: GuestOrderDraft = {
+              guestName: data.guestName || "Guest",
+              isPackedBreakfast: data.isPackedBreakfast || false,
+              selectedStarters: data.starters || [],
+              starterNotes: data.starterNotes || "",
+              selectedMains: data.mains || [],
+              toastSlices: data.toastSlices !== undefined ? data.toastSlices : 4,
+              includesButter: data.includesButter !== undefined ? data.includesButter : true,
+              includesJam: data.includesJam !== undefined ? data.includesJam : true,
+              isKidFruitPlatter: data.isKidFruitPlatter || false,
+              includesSriLankanMeals: (data.mains || []).some((m: any) => SRI_LANKAN_MAINS.includes(m)),
+              sriLankanNotes: data.sriLankanNotes || "",
+              includesEggs: !!data.eggStyle,
+              eggStyle: data.eggStyle || "Omelet",
+              friedEggStyle: data.friedEggStyle || "Sunny-Side Up",
+              eggNotes: data.eggNotes || "",
+              includesBeverage: !!data.beverage,
+              beverage: data.beverage || "Ceylon Tea",
+              beverageIncludesMilk: data.beverageIncludesMilk || false,
+              packedSandwichChoice: data.packedSandwichChoice || null,
+              packedIncludesBanana: data.packedIncludesBanana !== undefined ? data.packedIncludesBanana : true,
+              packedIncludesYoghurt: data.packedIncludesYoghurt !== undefined ? data.packedIncludesYoghurt : true,
+              packedIncludesWater: data.packedIncludesWater !== undefined ? data.packedIncludesWater : true,
+              dietaryNotes: data.dietaryNotes || "",
+            };
+
+            setGuestOrders([go]);
+            setStep(2); // Jump straight to guest details
+          }
+        } catch (err) {
+          console.error("Failed to load order:", err);
+          toast.error("Failed to load order for editing");
+        }
+      }
+    };
+    
+    loadEditOrder();
   }, [router]);
 
   const resetForm = () => {
@@ -416,20 +489,42 @@ export default function GuestMenuPage() {
         createdAt: new Date().toISOString(),
       }));
 
-      const promises = payload.map(orderPayload => {
+      if (editMode && editOrderId) {
+        // Update single order
+        const orderPayload = payload[0];
         Object.keys(orderPayload).forEach(key => {
           if ((orderPayload as any)[key] === undefined) {
             delete (orderPayload as any)[key];
           }
         });
-        return addDoc(collection(db, "orders"), orderPayload);
-      });
-      
-      await toast.promise(Promise.all(promises), {
-        loading: 'Sending order to kitchen...',
-        success: 'Order submitted successfully!',
-        error: 'Failed to submit order.'
-      });
+        // We shouldn't overwrite createdAt on edit
+        delete (orderPayload as any).createdAt;
+        
+        await toast.promise(updateDoc(doc(db, "orders", editOrderId), orderPayload), {
+          loading: 'Updating order...',
+          success: 'Order updated successfully!',
+          error: 'Failed to update order.'
+        });
+        
+        // Redirect back to kitchen
+        router.push('/kitchen');
+        return;
+      } else {
+        const promises = payload.map(orderPayload => {
+          Object.keys(orderPayload).forEach(key => {
+            if ((orderPayload as any)[key] === undefined) {
+              delete (orderPayload as any)[key];
+            }
+          });
+          return addDoc(collection(db, "orders"), orderPayload);
+        });
+        
+        await toast.promise(Promise.all(promises), {
+          loading: 'Sending order to kitchen...',
+          success: 'Order submitted successfully!',
+          error: 'Failed to submit order.'
+        });
+      }
 
       setIsSuccess(true);
       
@@ -1065,10 +1160,10 @@ export default function GuestMenuPage() {
                 onClick={submitOrder}
                 disabled={isSubmitting}
                 className={`w-full flex items-center justify-center py-4 mt-8 rounded-xl text-white font-medium tracking-widest uppercase transition-all shadow-md ${
-                  isSubmitting ? 'bg-[#a8a29e] cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
+                  isSubmitting ? 'bg-[#a8a29e] cursor-not-allowed' : (editMode ? 'bg-[var(--accent-gold)] hover:bg-[#c9a059] text-[var(--stone-900)]' : 'bg-green-600 hover:bg-green-700 hover:shadow-lg')
                 }`}
               >
-                {isSubmitting ? 'Processing...' : 'Confirm & Send to WhatsApp'}
+                {isSubmitting ? 'Processing...' : (editMode ? 'Update Order' : 'Confirm & Send to WhatsApp')}
               </button>
             </div>
           )}

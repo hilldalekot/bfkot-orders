@@ -1211,10 +1211,43 @@ export default function KitchenDashboard() {
                       <div key={order.id} className="bg-white rounded-xl shadow-sm border border-[var(--stone-200)] flex flex-col">
                         <div className="p-4 border-b border-[var(--stone-100)] flex justify-between items-center">
                           <p className="font-medium text-[var(--stone-900)]">{order.guestName}</p>
-                          <div className="text-xs text-[var(--stone-500)]">
-                            {order.createdAt && !isNaN(new Date(order.createdAt).getTime()) 
-                              ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-                              : "Time N/A"}
+                          <div className="flex items-center space-x-3">
+                            <div className="text-xs text-[var(--stone-500)]">
+                              {order.createdAt && !isNaN(new Date(order.createdAt).getTime()) 
+                                ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                                : "Time N/A"}
+                            </div>
+                            {staffRole === "F&B Staff" && (
+                              <button
+                                onClick={async () => {
+                                  const staffName = localStorage.getItem("staffName");
+                                  if (!staffName) {
+                                    import("react-hot-toast").then(mod => mod.default.error("You must be logged in to edit orders."));
+                                    return;
+                                  }
+                                  const enteredPin = window.prompt(`Enter PIN for ${staffName} to edit this order:`);
+                                  if (enteredPin === null) return;
+                                  
+                                  try {
+                                    const staffDoc = await getDoc(doc(db, "staff", staffName.toLowerCase()));
+                                    if (staffDoc.exists() && staffDoc.data().pin === enteredPin) {
+                                      router.push(`/menu?editOrderId=${order.id}`);
+                                    } else {
+                                      import("react-hot-toast").then(mod => mod.default.error("Incorrect PIN."));
+                                    }
+                                  } catch (err) {
+                                    console.error("Error verifying PIN:", err);
+                                    import("react-hot-toast").then(mod => mod.default.error("An error occurred. Please try again."));
+                                  }
+                                }}
+                                className="text-[var(--stone-400)] hover:text-[var(--accent-gold)] transition-colors"
+                                title="Edit Order"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                            )}
                           </div>
                         </div>
                         
