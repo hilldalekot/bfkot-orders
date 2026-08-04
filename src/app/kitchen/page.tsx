@@ -1375,6 +1375,14 @@ export default function KitchenDashboard() {
                               <p className="text-sm text-red-900">{order.dietaryNotes}</p>
                             </div>
                           )}
+                          
+                          {order.editedBy && order.editedAt && (
+                            <div className="mt-4 pt-3 border-t border-dashed border-[var(--stone-200)] flex justify-end">
+                              <p className="text-[10px] text-[var(--stone-400)] italic">
+                                Edited by {order.editedBy} at {new Date(order.editedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         <div className="p-3 bg-[var(--stone-50)] border-t border-[var(--stone-100)] flex items-center justify-between rounded-b-xl">

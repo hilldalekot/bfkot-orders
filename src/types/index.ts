@@ -78,6 +78,8 @@ export interface Order {
   status: OrderStatus;
   createdAt: string;
   staffName?: string;
+  editedBy?: string;
+  editedAt?: string;
 }
 
 export interface Staff {

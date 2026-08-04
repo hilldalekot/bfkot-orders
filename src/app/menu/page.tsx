@@ -500,6 +500,9 @@ export default function GuestMenuPage() {
         // We shouldn't overwrite createdAt on edit
         delete (orderPayload as any).createdAt;
         
+        (orderPayload as any).editedBy = staffName || "Unknown Staff";
+        (orderPayload as any).editedAt = new Date().toISOString();
+        
         await toast.promise(updateDoc(doc(db, "orders", editOrderId), orderPayload), {
           loading: 'Updating order...',
           success: 'Order updated successfully!',
