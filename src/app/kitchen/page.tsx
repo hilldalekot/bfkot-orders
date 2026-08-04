@@ -1104,7 +1104,14 @@ export default function KitchenDashboard() {
                       </h2>
                       <p className="text-[var(--stone-300)] text-sm mt-1">{roomOrders.length} {roomOrders.length === 1 ? 'Guest' : 'Guests'}</p>
                       {roomOrders[0]?.staffName && (
-                        <p className="text-xs text-[var(--accent-gold)] mt-1 opacity-90">Taken by: {roomOrders[0].staffName}</p>
+                        <div className="mt-1">
+                          <p className="text-xs text-[var(--accent-gold)] opacity-90">Taken by: {roomOrders[0].staffName}</p>
+                          {roomOrders[0]?.createdAt && (
+                            <p className="text-[10px] text-[var(--stone-400)] mt-0.5">
+                              at {new Date(roomOrders[0].createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
                     
