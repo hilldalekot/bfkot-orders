@@ -150,7 +150,9 @@ export default function KitchenDashboard() {
     let packedWaters = 0;
     let driverPackedCount = 0;
 
-    ROOM_NUMBERS.forEach(room => {
+    const activeRooms = new Set([...ROOM_NUMBERS, ...orders.map(o => o.roomNumber)]);
+
+    activeRooms.forEach(room => {
       const roomOrders = orders.filter(o => o.roomNumber === room);
       const roomOcc = occupancy[room];
 
