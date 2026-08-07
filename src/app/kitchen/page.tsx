@@ -29,6 +29,17 @@ const SRI_LANKAN_MAINS: string[] = [
   "Egg Curry"
 ];
 
+
+function getStarterQty(starters: string[], starter: string): number {
+  if (starter === "Waffles with Treacle") return 2;
+  const pastrySet = new Set(["Cakes", "Buns", "Pastries"]);
+  if (pastrySet.has(starter)) {
+    const pastryItems = starters.filter(s => pastrySet.has(s));
+    if (pastryItems.length === 1) return 2;
+  }
+  return 1;
+}
+
 export default function KitchenDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,7 +175,7 @@ export default function KitchenDashboard() {
             if (order.starters) {
               order.starters.forEach(s => {
                 const starterName = (s === "Fruit Platter" && order.isKidFruitPlatter) ? "Fruit Platter (Kid's Portion)" : s;
-                const qty = s === "Waffles with Treacle" ? 2 : 1;
+                const qty = getStarterQty(order.starters, s);
                 starterCounts[starterName] = (starterCounts[starterName] || 0) + qty;
               });
             }
@@ -507,10 +518,12 @@ export default function KitchenDashboard() {
         text += `STARTERS\n`;
         if (order.starters && order.starters.length > 0) {
           order.starters.forEach(s => {
+            const qty = getStarterQty(order.starters, s);
+            const qtyStr = qty > 1 ? ` (x${qty})` : '';
             if (s === "Fruit Platter" && order.isKidFruitPlatter) {
-              text += `• Fruit Platter (Kid's Portion)\n`;
+              text += `• Fruit Platter (Kid's Portion)${qtyStr}\n`;
             } else {
-              text += `• ${s}\n`;
+              text += `• ${s}${qtyStr}\n`;
             }
           });
         }
@@ -1282,9 +1295,15 @@ export default function KitchenDashboard() {
                                 <div className="mb-3">
                                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Starters</h4>
                                   <ul className="list-disc list-inside text-sm text-[var(--stone-900)] space-y-1">
-                                    {order.starters.map(s => (
-                                      <li key={s}>{s === "Fruit Platter" && order.isKidFruitPlatter ? "Fruit Platter (Kid's Portion)" : s}</li>
-                                    ))}
+                                    {order.starters.map(s => {
+                                      const qty = getStarterQty(order.starters, s);
+                                      return (
+                                        <li key={s}>
+                                          {s === "Fruit Platter" && order.isKidFruitPlatter ? "Fruit Platter (Kid's Portion)" : s}
+                                          {qty > 1 && <span className="ml-1 text-[var(--stone-500)] text-xs font-semibold">(x{qty})</span>}
+                                        </li>
+                                      );
+                                    })}
                                   </ul>
                                   {order.starterNotes && (
                                     <p className="text-sm text-[var(--stone-900)] mt-2">
