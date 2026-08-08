@@ -47,6 +47,7 @@ export default function KitchenDashboard() {
   const [occupancy, setOccupancy] = useState<Record<string, { occupied: boolean; guests: number; kids?: number; time?: string; type?: 'English' | 'Sri Lankan'; note?: string }>>({});
   const [extraMeals, setExtraMeals] = useState<{ drivers: number; staff: number }>({ drivers: 0, staff: 0 });
   const [filterTab, setFilterTab] = useState<'active' | 'completed'>('active');
+  const [roomFilter, setRoomFilter] = useState<string>("All");
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [isOccupancyEditMode, setIsOccupancyEditMode] = useState(false);
   const [staffRole, setStaffRole] = useState<string>("F&B Staff");
@@ -744,17 +745,30 @@ export default function KitchenDashboard() {
               Completed Orders
             </button>
           </div>
-          {staffRole === "F&B Staff" && (
-            <button 
-              onClick={() => setShowSummary(!showSummary)}
-              className="px-6 py-3 bg-[var(--stone-900)] hover:bg-[var(--stone-800)] text-white text-sm font-semibold uppercase tracking-wider rounded-xl transition-colors shadow-lg flex items-center space-x-2"
+          <div className="flex items-center space-x-3 w-full sm:w-auto">
+            <select
+              value={roomFilter}
+              onChange={(e) => setRoomFilter(e.target.value)}
+              className="px-4 py-3 bg-white text-sm font-medium text-[var(--stone-700)] rounded-xl border border-[var(--stone-200)] shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)]"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[var(--accent-gold)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span>{showSummary ? "Hide Production Summary" : "Show Production Summary"}</span>
-            </button>
-          )}
+              <option value="All">All Rooms</option>
+              {Array.from(new Set(orders.map(o => o.roomNumber))).sort().map(room => (
+                <option key={room} value={room}>{room === "Walk-In" ? "Walk-In" : `Room ${room}`}</option>
+              ))}
+            </select>
+
+            {staffRole === "F&B Staff" && (
+              <button 
+                onClick={() => setShowSummary(!showSummary)}
+                className="px-6 py-3 bg-[var(--stone-900)] hover:bg-[var(--stone-800)] text-white text-sm font-semibold uppercase tracking-wider rounded-xl transition-colors shadow-lg flex items-center space-x-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[var(--accent-gold)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="hidden sm:inline">{showSummary ? "Hide Summary" : "Show Summary"}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {showSummary && (
@@ -1063,7 +1077,11 @@ export default function KitchenDashboard() {
         {loading ? (
           <div className="text-center py-20 text-[var(--stone-800)]">Loading orders...</div>
         ) : (() => {
-          const filteredOrders = orders.filter(order => filterTab === 'active' ? order.status !== 'Completed' : order.status === 'Completed');
+          const filteredOrders = orders.filter(order => {
+            const matchesStatus = filterTab === 'active' ? order.status !== 'Completed' : order.status === 'Completed';
+            const matchesRoom = roomFilter === 'All' || order.roomNumber === roomFilter;
+            return matchesStatus && matchesRoom;
+          });
           
           if (filteredOrders.length === 0) {
             return (
