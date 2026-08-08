@@ -323,10 +323,6 @@ export default function GuestMenuPage() {
       setError("Please provide a name for this guest.");
       return;
     }
-    if (guestOrders[currentGuestIndex].isPackedBreakfast && !guestOrders[currentGuestIndex].packedSandwichChoice) {
-      setError("Please select a sandwich for the packed breakfast.");
-      return;
-    }
     setError("");
     if (currentGuestIndex < guestCount - 1) {
       setCurrentGuestIndex(prev => prev + 1);
