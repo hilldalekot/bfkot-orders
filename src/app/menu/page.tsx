@@ -1078,8 +1078,16 @@ export default function GuestMenuPage() {
                       {order.isPackedBreakfast ? (
                         <>
                           <p><span className="font-medium text-[var(--stone-900)]">Type:</span> Packed Breakfast</p>
-                          <p><span className="font-medium text-[var(--stone-900)]">Sandwich:</span> {order.packedSandwichChoice}</p>
-                          <p className="text-xs text-[var(--stone-500)]">+ Banana, Yoghurt, Water</p>
+                          <p><span className="font-medium text-[var(--stone-900)]">Sandwich:</span> {order.packedSandwichChoice || 'None'}</p>
+                          {(() => {
+                            const extras = [];
+                            if (order.packedIncludesBanana) extras.push("Banana");
+                            if (order.packedIncludesYoghurt) extras.push("Yoghurt");
+                            if (order.packedIncludesWater) extras.push("Water");
+                            return extras.length > 0 ? (
+                              <p className="text-xs text-[var(--stone-500)]">+ {extras.join(', ')}</p>
+                            ) : null;
+                          })()}
                         </>
                       ) : (
                         <>
