@@ -85,6 +85,7 @@ type GuestOrderDraft = {
   includesBeverage: boolean;
   beverage: BeverageType;
   beverageIncludesMilk: boolean;
+  beverageNotes: string;
   isPackedBreakfast: boolean;
   packedSandwichChoice: PackedSandwichType | null;
   packedIncludesBanana: boolean;
@@ -111,6 +112,7 @@ const defaultGuestOrder = (index: number): GuestOrderDraft => ({
   includesBeverage: false,
   beverage: "Ceylon Tea",
   beverageIncludesMilk: false,
+  beverageNotes: "",
   isPackedBreakfast: false,
   packedSandwichChoice: null,
   packedIncludesBanana: true,
@@ -240,6 +242,7 @@ export default function GuestMenuPage() {
               includesBeverage: !!data.beverage,
               beverage: data.beverage || "Ceylon Tea",
               beverageIncludesMilk: data.beverageIncludesMilk || false,
+              beverageNotes: data.beverageNotes || "",
               packedSandwichChoice: data.packedSandwichChoice || null,
               packedIncludesBanana: data.packedIncludesBanana !== undefined ? data.packedIncludesBanana : true,
               packedIncludesYoghurt: data.packedIncludesYoghurt !== undefined ? data.packedIncludesYoghurt : true,
@@ -419,7 +422,11 @@ export default function GuestMenuPage() {
         
         if (order.includesBeverage && order.beverage) {
           text += `BEVERAGE\n`;
-          text += `*${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}*\n\n`;
+          text += `*${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}*\n`;
+          if (order.beverageNotes) {
+            text += `Note: ${order.beverageNotes}\n`;
+          }
+          text += `\n`;
         }
       }
       
@@ -476,6 +483,7 @@ export default function GuestMenuPage() {
         friedEggStyle: (!go.isPackedBreakfast && go.includesEggs && go.eggStyle === "Fried Egg") ? go.friedEggStyle : undefined,
         beverage: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverage : undefined,
         beverageIncludesMilk: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverageIncludesMilk : undefined,
+        beverageNotes: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverageNotes : undefined,
         sriLankanNotes: (!go.isPackedBreakfast && go.includesSriLankanMeals) ? go.sriLankanNotes : undefined,
         eggNotes: (!go.isPackedBreakfast && go.includesEggs) ? go.eggNotes : undefined,
         dietaryNotes: go.dietaryNotes,
@@ -945,12 +953,20 @@ export default function GuestMenuPage() {
                             {BEVERAGES.map(bev => <option key={bev} value={bev}>{bev}</option>)}
                           </select>
                           
-                          <label className="flex items-center space-x-3 cursor-pointer group">
+                          <label className="flex items-center space-x-3 cursor-pointer group mb-3">
                             <div onClick={() => updateCurrentGuest({ beverageIncludesMilk: !currentGuest.beverageIncludesMilk })} className={`w-4 h-4 rounded border flex items-center justify-center ${currentGuest.beverageIncludesMilk ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-300)]'}`}>
                               {currentGuest.beverageIncludesMilk && <span className="text-white text-[10px]">✓</span>}
                             </div>
                             <span className="text-sm text-[var(--stone-900)]" onClick={() => updateCurrentGuest({ beverageIncludesMilk: !currentGuest.beverageIncludesMilk })}>With Milk</span>
                           </label>
+
+                          <DebouncedInput 
+                            type="text"
+                            placeholder="Any notes for beverages?"
+                            value={currentGuest.beverageNotes}
+                            onDebouncedChange={(val) => updateCurrentGuest({ beverageNotes: val })}
+                            className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                          />
                         </div>
                       )}
                     </div>

@@ -71,6 +71,7 @@ export interface Order {
   friedEggStyle?: FriedEggStyle;
   beverage?: BeverageType;
   beverageIncludesMilk?: boolean;
+  beverageNotes?: string;
   dietaryNotes?: string;
   sriLankanNotes?: string;
   eggNotes?: string;

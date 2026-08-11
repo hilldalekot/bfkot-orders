@@ -1394,6 +1394,9 @@ export default function KitchenDashboard() {
                             const bevName = `${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}`;
                             beverageCounts[bevName] = (beverageCounts[bevName] || 0) + 1;
                           }
+                          if (order.beverageNotes && !notes.includes(`Beverage: ${order.beverageNotes}`)) {
+                            notes.push(`Beverage: ${order.beverageNotes}`);
+                          }
 
                           if (order.dietaryNotes && !notes.includes(`Dietary: ${order.dietaryNotes}`)) {
                             notes.push(`Dietary: ${order.dietaryNotes}`);
@@ -1655,6 +1658,11 @@ export default function KitchenDashboard() {
                                   <p className="text-sm text-[var(--stone-900)] font-semibold">
                                     {order.beverage} {order.beverageIncludesMilk ? "(With Milk)" : "(Black / No Milk)"}
                                   </p>
+                                  {order.beverageNotes && (
+                                    <p className="text-sm text-[var(--stone-900)] mt-1">
+                                      Note: <span className="font-semibold">{order.beverageNotes}</span>
+                                    </p>
+                                  )}
                                 </div>
                               )}
                             </>
