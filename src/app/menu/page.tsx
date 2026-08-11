@@ -420,9 +420,11 @@ export default function GuestMenuPage() {
           text += `\n`;
         }
         
-        if (order.includesBeverage && order.beverage) {
+        if ((order.includesBeverage && order.beverage) || order.beverageNotes) {
           text += `BEVERAGE\n`;
-          text += `*${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}*\n`;
+          if (order.includesBeverage && order.beverage) {
+            text += `*${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}*\n`;
+          }
           if (order.beverageNotes) {
             text += `Note: ${order.beverageNotes}\n`;
           }
@@ -483,7 +485,7 @@ export default function GuestMenuPage() {
         friedEggStyle: (!go.isPackedBreakfast && go.includesEggs && go.eggStyle === "Fried Egg") ? go.friedEggStyle : undefined,
         beverage: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverage : undefined,
         beverageIncludesMilk: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverageIncludesMilk : undefined,
-        beverageNotes: (!go.isPackedBreakfast && go.includesBeverage) ? go.beverageNotes : undefined,
+        beverageNotes: !go.isPackedBreakfast ? go.beverageNotes : undefined,
         sriLankanNotes: (!go.isPackedBreakfast && go.includesSriLankanMeals) ? go.sriLankanNotes : undefined,
         eggNotes: (!go.isPackedBreakfast && go.includesEggs) ? go.eggNotes : undefined,
         dietaryNotes: go.dietaryNotes,
@@ -959,16 +961,18 @@ export default function GuestMenuPage() {
                             </div>
                             <span className="text-sm text-[var(--stone-900)]" onClick={() => updateCurrentGuest({ beverageIncludesMilk: !currentGuest.beverageIncludesMilk })}>With Milk</span>
                           </label>
-
-                          <DebouncedInput 
-                            type="text"
-                            placeholder="Any notes for beverages?"
-                            value={currentGuest.beverageNotes}
-                            onDebouncedChange={(val) => updateCurrentGuest({ beverageNotes: val })}
-                            className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
-                          />
                         </div>
                       )}
+                      
+                      <div className="mt-3">
+                        <DebouncedInput 
+                          type="text"
+                          placeholder="Any notes for beverages?"
+                          value={currentGuest.beverageNotes}
+                          onDebouncedChange={(val) => updateCurrentGuest({ beverageNotes: val })}
+                          className="w-full bg-[var(--stone-50)] border border-[var(--stone-200)] rounded-xl py-2 px-4 text-sm text-[var(--stone-900)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-gold)]"
+                        />
+                      </div>
                     </div>
                   </section>
                   </>

@@ -1652,12 +1652,14 @@ export default function KitchenDashboard() {
                                 );
                               })()}
 
-                              {order.beverage && (
+                              {(order.beverage || order.beverageNotes) && (
                                 <div>
                                   <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--stone-800)] mb-1">Beverage</h4>
-                                  <p className="text-sm text-[var(--stone-900)] font-semibold">
-                                    {order.beverage} {order.beverageIncludesMilk ? "(With Milk)" : "(Black / No Milk)"}
-                                  </p>
+                                  {order.beverage && (
+                                    <p className="text-sm text-[var(--stone-900)] font-semibold">
+                                      {order.beverage} {order.beverageIncludesMilk ? "(With Milk)" : "(Black / No Milk)"}
+                                    </p>
+                                  )}
                                   {order.beverageNotes && (
                                     <p className="text-sm text-[var(--stone-900)] mt-1">
                                       Note: <span className="font-semibold">{order.beverageNotes}</span>
