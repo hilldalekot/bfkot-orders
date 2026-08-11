@@ -1130,8 +1130,15 @@ export default function GuestMenuPage() {
                             <p><span className="font-medium text-[var(--stone-900)]">Eggs:</span> {order.eggStyle} {order.eggStyle === "Fried Egg" && `(${order.friedEggStyle})`} {order.eggNotes && <span className="text-sm italic text-[var(--stone-500)]">- {order.eggNotes}</span>}</p>
                           )}
                           
-                          {order.includesBeverage && (
-                            <p><span className="font-medium text-[var(--stone-900)]">Beverage:</span> {order.beverage} {order.beverageIncludesMilk ? '(With Milk)' : '(Black)'}</p>
+                          {(order.includesBeverage || order.beverageNotes) && (
+                            <>
+                              {order.includesBeverage && (
+                                <p><span className="font-medium text-[var(--stone-900)]">Beverage:</span> {order.beverage} {order.beverageIncludesMilk ? '(With Milk)' : '(Black)'}</p>
+                              )}
+                              {order.beverageNotes && (
+                                <p><span className="font-medium text-[var(--stone-900)]">Beverage Note:</span> {order.beverageNotes}</p>
+                              )}
+                            </>
                           )}
                         </>
                       )}
