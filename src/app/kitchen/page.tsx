@@ -1226,6 +1226,31 @@ export default function KitchenDashboard() {
                     </div>
                     
                     <div className="flex items-center space-x-6 w-full sm:w-auto justify-between sm:justify-end">
+                      {staffRole === "F&B Staff" && (
+                        <div className="flex space-x-2 mr-2">
+                          <button 
+                            onClick={() => sendStartersBeveragesToWhatsApp(roomNumber, roomOrders)}
+                            className="flex items-center space-x-1 px-3 py-1.5 bg-green-900/30 hover:bg-green-900/50 text-green-300 rounded-lg transition-colors border border-green-900/50"
+                            title="Share Starters & Beverages Only"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                            </svg>
+                            <span className="text-xs font-bold uppercase tracking-wider">Starters & Bev</span>
+                          </button>
+                          <button 
+                            onClick={() => sendMainsToWhatsApp(roomNumber, roomOrders)}
+                            className="flex items-center space-x-1 px-3 py-1.5 bg-green-900/30 hover:bg-green-900/50 text-green-300 rounded-lg transition-colors border border-green-900/50"
+                            title="Share Mains & Beverages Only"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                            </svg>
+                            <span className="text-xs font-bold uppercase tracking-wider">Mains</span>
+                          </button>
+                        </div>
+                      )}
+                      
                       {roomOrders[0]?.breakfastTime && (
                         <div className="text-right">
                           <div className="flex items-center justify-end space-x-2">
@@ -1302,44 +1327,29 @@ export default function KitchenDashboard() {
                           </button>
                         </div>
                         )}
-                        
-                        {staffRole === "F&B Staff" && (
-                          <div className="flex flex-col space-y-2">
-                            <button 
-                              onClick={() => sendStartersBeveragesToWhatsApp(roomNumber, roomOrders)}
-                              className="flex justify-center items-center space-x-1 px-2 py-1 bg-green-900/30 hover:bg-green-900/50 text-green-300 rounded-lg transition-colors border border-green-900/50"
-                              title="Share Starters & Beverages Only"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                              </svg>
-                              <span className="text-[10px] font-bold uppercase tracking-wider">Starters & Bev</span>
-                            </button>
-                            <button 
-
-                            onClick={() => sendMainsToWhatsApp(roomNumber, roomOrders)}
-                            className="flex items-center space-x-1 px-2 py-1 bg-green-900/30 hover:bg-green-900/50 text-green-300 rounded-lg transition-colors border border-green-900/50"
-                            title="Share Mains & Beverages Only"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                            </svg>
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Mains</span>
-                          </button>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
                   
                   <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-[var(--stone-50)]">
                     {(() => {
+                      const STARTER_ORDER = ["Mixed Fruit Juice", "Fruit Platter", "Fruit Platter (Kid's Portion)", "Cereal with Milk", "Yoghurt", "Waffles with Treacle", "Cakes", "Buns", "Pastries"];
+                      const MAIN_ORDER = ["Chicken Sausages", "Bacon", "Chicken Salami", "Baked Beans", "Rice", "Coconut Roty", "Parata", "Chapathi", "Dhal Curry", "Mix Veg Curry", "Coconut Sambol", "Egg Curry"];
+                      const EGG_ORDER = ["Omelet", "Cheese Omelet", "Sri Lankan Omelet", "Scrambled Eggs", "Fried Egg (Sunny-Side Up)", "Fried Egg (Over Easy)", "Fried Egg (Over Medium)", "Fried Egg (Over Hard)", "Boiled Eggs"];
+                      const BEVERAGE_ORDER = ["Ceylon Tea (With Milk)", "Ceylon Tea (Black / No Milk)", "Coffee (With Milk)", "Coffee (Black / No Milk)"];
+
                       const starterCounts: Record<string, number> = {};
+                      const mainCounts: Record<string, number> = {};
+                      let toastSlices = 0;
+                      let butterCount = 0;
+                      let jamCount = 0;
+                      const eggCounts: Record<string, number> = {};
                       const beverageCounts: Record<string, number> = {};
                       const notes: string[] = [];
 
                       roomOrders.forEach(order => {
                         if (!order.isPackedBreakfast) {
+                          // Starters
                           if (order.starters) {
                             order.starters.forEach(s => {
                               const qty = getStarterQty(order.starters, s);
@@ -1347,30 +1357,62 @@ export default function KitchenDashboard() {
                               starterCounts[name] = (starterCounts[name] || 0) + qty;
                             });
                           }
-                          if (order.starterNotes && !notes.includes(order.starterNotes)) {
+                          if (order.starterNotes && !notes.includes(`Starters: ${order.starterNotes}`)) {
                             notes.push(`Starters: ${order.starterNotes}`);
                           }
-                          if (order.dietaryNotes && !notes.includes(order.dietaryNotes)) {
-                            notes.push(`Dietary: ${order.dietaryNotes}`);
+
+                          // Mains
+                          if (order.mains) {
+                            order.mains.forEach(m => {
+                              if (m === "Bread Toast") {
+                                toastSlices += (order.toastSlices || 4);
+                                if (order.includesButter) butterCount++;
+                                if (order.includesJam) jamCount++;
+                              } else {
+                                mainCounts[m] = (mainCounts[m] || 0) + 1;
+                              }
+                            });
+                          }
+                          if (order.sriLankanNotes && !notes.includes(`SL Mains: ${order.sriLankanNotes}`)) {
+                            notes.push(`SL Mains: ${order.sriLankanNotes}`);
                           }
 
+                          // Eggs
+                          if (order.eggStyle) {
+                            let eggName = order.eggStyle as string;
+                            if (order.eggStyle === "Fried Egg" && order.friedEggStyle) {
+                              eggName = `Fried Egg (${order.friedEggStyle})`;
+                            }
+                            eggCounts[eggName] = (eggCounts[eggName] || 0) + 1;
+                          }
+                          if (order.eggNotes && !notes.includes(`Eggs: ${order.eggNotes}`)) {
+                            notes.push(`Eggs: ${order.eggNotes}`);
+                          }
+
+                          // Beverages
                           if (order.beverage) {
                             const bevName = `${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}`;
                             beverageCounts[bevName] = (beverageCounts[bevName] || 0) + 1;
                           }
+
+                          if (order.dietaryNotes && !notes.includes(`Dietary: ${order.dietaryNotes}`)) {
+                            notes.push(`Dietary: ${order.dietaryNotes}`);
+                          }
                         }
                       });
                       
-                      const starterKeys = Object.keys(starterCounts).sort();
-                      const beverageKeys = Object.keys(beverageCounts).sort();
+                      const starterKeys = Object.keys(starterCounts).sort((a, b) => STARTER_ORDER.indexOf(a) - STARTER_ORDER.indexOf(b));
+                      const mainKeys = Object.keys(mainCounts).sort((a, b) => MAIN_ORDER.indexOf(a) - MAIN_ORDER.indexOf(b));
+                      const eggKeys = Object.keys(eggCounts).sort((a, b) => EGG_ORDER.indexOf(a) - EGG_ORDER.indexOf(b));
+                      const beverageKeys = Object.keys(beverageCounts).sort((a, b) => BEVERAGE_ORDER.indexOf(a) - BEVERAGE_ORDER.indexOf(b));
                       
-                      if (starterKeys.length === 0 && beverageKeys.length === 0) return null;
+                      if (starterKeys.length === 0 && beverageKeys.length === 0 && mainKeys.length === 0 && toastSlices === 0 && eggKeys.length === 0) return null;
                       
                       return (
                         <div className="bg-[#f0f9ff] rounded-xl shadow-sm border border-blue-200 flex flex-col">
                           <div className="p-4 border-b border-blue-100 flex justify-between items-center bg-blue-50/50 rounded-t-xl">
                             <p className="font-bold text-blue-900 tracking-wide text-sm flex items-center gap-2">
-                              Sum Starters & Bev
+                              Room Summary
                             </p>
                           </div>
                           <div className="p-4 flex-1 space-y-4">
@@ -1388,6 +1430,37 @@ export default function KitchenDashboard() {
                               ) : <p className="text-sm text-blue-700 italic">None</p>}
                             </div>
                             
+                            <div>
+                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-2">Main Course</h4>
+                              {(mainKeys.length > 0 || toastSlices > 0 || eggKeys.length > 0) ? (
+                                <ul className="space-y-1">
+                                  {toastSlices > 0 && (
+                                    <li className="text-sm text-blue-900 flex justify-between items-center border-b border-blue-100/50 pb-1 last:border-0">
+                                      <div className="flex flex-col">
+                                        <span>• Bread Toast</span>
+                                        <span className="text-xs text-blue-700 ml-3">
+                                          ({butterCount}x Butter, {jamCount}x Jam)
+                                        </span>
+                                      </div>
+                                      <span className="font-semibold px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">{toastSlices} slices</span>
+                                    </li>
+                                  )}
+                                  {eggKeys.map(k => (
+                                    <li key={k} className="text-sm text-blue-900 flex justify-between items-center border-b border-blue-100/50 pb-1 last:border-0">
+                                      <span>• {k}</span>
+                                      <span className="font-semibold px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">x{eggCounts[k]}</span>
+                                    </li>
+                                  ))}
+                                  {mainKeys.map(k => (
+                                    <li key={k} className="text-sm text-blue-900 flex justify-between items-center border-b border-blue-100/50 pb-1 last:border-0">
+                                      <span>• {k}</span>
+                                      <span className="font-semibold px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">x{mainCounts[k]}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-blue-700 italic">None</p>}
+                            </div>
+
                             <div>
                               <h4 className="text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-2">Beverages</h4>
                               {beverageKeys.length > 0 ? (
