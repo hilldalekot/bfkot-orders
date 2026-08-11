@@ -1333,6 +1333,90 @@ export default function KitchenDashboard() {
                   </div>
                   
                   <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-[var(--stone-50)]">
+                    {(() => {
+                      const starterCounts: Record<string, number> = {};
+                      const beverageCounts: Record<string, number> = {};
+                      const notes: string[] = [];
+
+                      roomOrders.forEach(order => {
+                        if (!order.isPackedBreakfast) {
+                          if (order.starters) {
+                            order.starters.forEach(s => {
+                              const qty = getStarterQty(order.starters, s);
+                              const name = (s === "Fruit Platter" && order.isKidFruitPlatter) ? "Fruit Platter (Kid's Portion)" : s;
+                              starterCounts[name] = (starterCounts[name] || 0) + qty;
+                            });
+                          }
+                          if (order.starterNotes && !notes.includes(order.starterNotes)) {
+                            notes.push(`Starters: ${order.starterNotes}`);
+                          }
+                          if (order.dietaryNotes && !notes.includes(order.dietaryNotes)) {
+                            notes.push(`Dietary: ${order.dietaryNotes}`);
+                          }
+
+                          if (order.beverage) {
+                            const bevName = `${order.beverage} ${order.beverageIncludesMilk ? '(With Milk)' : '(Black / No Milk)'}`;
+                            beverageCounts[bevName] = (beverageCounts[bevName] || 0) + 1;
+                          }
+                        }
+                      });
+                      
+                      const starterKeys = Object.keys(starterCounts).sort();
+                      const beverageKeys = Object.keys(beverageCounts).sort();
+                      
+                      if (starterKeys.length === 0 && beverageKeys.length === 0) return null;
+                      
+                      return (
+                        <div className="bg-[#f0f9ff] rounded-xl shadow-sm border border-blue-200 flex flex-col">
+                          <div className="p-4 border-b border-blue-100 flex justify-between items-center bg-blue-50/50 rounded-t-xl">
+                            <p className="font-bold text-blue-900 tracking-wide text-sm flex items-center gap-2">
+                              Sum Starters & Bev
+                            </p>
+                          </div>
+                          <div className="p-4 flex-1 space-y-4">
+                            <div>
+                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-2">Starters</h4>
+                              {starterKeys.length > 0 ? (
+                                <ul className="space-y-1">
+                                  {starterKeys.map(k => (
+                                    <li key={k} className="text-sm text-blue-900 flex justify-between items-center border-b border-blue-100/50 pb-1 last:border-0">
+                                      <span>• {k}</span>
+                                      <span className="font-semibold px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">x{starterCounts[k]}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-blue-700 italic">None</p>}
+                            </div>
+                            
+                            <div>
+                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-blue-800 mb-2">Beverages</h4>
+                              {beverageKeys.length > 0 ? (
+                                <ul className="space-y-1">
+                                  {beverageKeys.map(k => (
+                                    <li key={k} className="text-sm text-blue-900 flex justify-between items-center border-b border-blue-100/50 pb-1 last:border-0">
+                                      <span>• {k}</span>
+                                      <span className="font-semibold px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">x{beverageCounts[k]}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : <p className="text-sm text-blue-700 italic">None</p>}
+                            </div>
+                            
+                            {notes.length > 0 && (
+                              <div className="mt-4 pt-3 border-t border-blue-200 border-dashed">
+                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-red-700 mb-2">Notes</h4>
+                                <ul className="space-y-1">
+                                  {notes.map((n, i) => (
+                                    <li key={i} className="text-xs text-red-800 font-medium bg-red-50 p-1.5 rounded border border-red-100/50">• {n}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {roomOrders.sort((a, b) => {
                       const timeDiff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
                       if (Math.abs(timeDiff) > 1000) return timeDiff; // Only sort by time if diff is > 1s (different orders)
