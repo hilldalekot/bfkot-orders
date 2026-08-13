@@ -836,7 +836,7 @@ export default function GuestMenuPage() {
                             >
                               -
                             </button>
-                            <span className="w-6 text-center font-medium">{currentGuest.toastSlices}</span>
+                            <span className="w-6 text-center font-medium text-[var(--stone-900)]">{currentGuest.toastSlices}</span>
                             <button 
                               type="button"
                               onClick={() => updateCurrentGuest({ toastSlices: Math.min(10, currentGuest.toastSlices + 1) })}
