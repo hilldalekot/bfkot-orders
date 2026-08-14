@@ -653,22 +653,19 @@ export default function GuestMenuPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--stone-800)] mb-2">Number of Guests</label>
-                    <div className="flex items-center space-x-4 bg-white border border-[var(--stone-200)] rounded-xl p-2 w-max h-[58px]">
-                      <button 
-                        type="button"
-                        onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}
-                        className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--stone-50)] text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors"
+                    <div className="relative">
+                      <select 
+                        value={guestCount}
+                        onChange={(e) => setGuestCount(Number(e.target.value))}
+                        className="w-full appearance-none bg-white border border-[var(--stone-200)] rounded-xl py-3 px-4 text-[var(--stone-900)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-gold)] focus:border-transparent cursor-pointer shadow-sm"
                       >
-                        -
-                      </button>
-                      <span className="w-8 text-center font-medium text-[var(--stone-900)]">{guestCount}</span>
-                      <button 
-                        type="button"
-                        onClick={() => setGuestCount(prev => Math.min(20, prev + 1))}
-                        className="w-10 h-10 rounded-lg flex items-center justify-center bg-[var(--stone-50)] text-[var(--stone-800)] hover:bg-[var(--stone-100)] transition-colors"
-                      >
-                        +
-                      </button>
+                        {[...Array(15)].map((_, i) => (
+                          <option key={i+1} value={i+1}>{i+1} {i === 0 ? 'Guest' : 'Guests'}</option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[var(--stone-800)]">
+                        ▼
+                      </div>
                     </div>
                   </div>
                   <div>
