@@ -13,7 +13,17 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Fetch staff list from Firestore
+    // 1. Instantly load from cache if available
+    const cachedStaff = localStorage.getItem("cachedStaffMembers");
+    if (cachedStaff) {
+      try {
+        setStaffMembers(JSON.parse(cachedStaff));
+      } catch (e) {
+        console.error("Failed to parse cached staff", e);
+      }
+    }
+
+    // 2. Fetch staff list from Firestore in the background
     const loadStaff = async () => {
       try {
         const q = query(collection(db, "staff"), orderBy("name"));
@@ -33,6 +43,7 @@ export default function LoginPage() {
           );
         }
         setStaffMembers(fetchedStaff);
+        localStorage.setItem("cachedStaffMembers", JSON.stringify(fetchedStaff));
       } catch (err) {
         console.error("Failed to load staff", err);
       }
