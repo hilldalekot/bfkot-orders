@@ -294,7 +294,7 @@ export default function KitchenDashboard() {
         text += `Room ${room}, ${timeStr}\n`;
         let roomNote = "";
         groupOrders.forEach(o => {
-          let items: string[] = [];
+          const items: string[] = [];
           if (o.mains) {
             o.mains.forEach(m => {
               if (SRI_LANKAN_MAINS.includes(m)) {
@@ -302,7 +302,7 @@ export default function KitchenDashboard() {
               }
             });
           }
-          let itemsStr = items.join(', ');
+          const itemsStr = items.join(', ');
           if (itemsStr) {
             text += `• ${o.guestName}: ${itemsStr}\n`;
           }
@@ -339,11 +339,11 @@ export default function KitchenDashboard() {
         text += `*Room ${room}, ${timeStr}*\n`;
         
         let driverPacked = 0;
-        let driverNotes: string[] = [];
+        const driverNotes: string[] = [];
         
         groupOrders.forEach(o => {
           if (o.isPackedBreakfast && o.packedSandwichChoice) {
-            let extras = [];
+            const extras = [];
             if (o.packedIncludesBanana) extras.push("Bananas: *1*");
             if (o.packedIncludesYoghurt) extras.push("Yoghurts: *1*");
             if (o.packedIncludesWater) extras.push("Water: *1*");
@@ -509,7 +509,7 @@ export default function KitchenDashboard() {
       if (order.isPackedBreakfast) {
         text += `[PACKED BREAKFAST]\n`;
         if (order.packedSandwichChoice) text += `• ${order.packedSandwichChoice}\n`;
-        let extras = [];
+        const extras = [];
         if (order.packedIncludesBanana) extras.push("Banana (1)");
         if (order.packedIncludesYoghurt) extras.push("Yoghurt (1)");
         if (order.packedIncludesWater) extras.push("Bottle of Water (1)");
@@ -542,10 +542,10 @@ export default function KitchenDashboard() {
           text += `MAIN COURSE${hasSLMains ? ' (English)' : ''}\n`;
           englishMains.forEach(m => {
             if (m === "Bread Toast") {
-              let toastExtras = [];
+              const toastExtras = [];
               if (order.includesButter) toastExtras.push("Butter");
               if (order.includesJam) toastExtras.push("Jam");
-              let extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
+              const extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
               text += `• Toast (${order.toastSlices || 4} slices${extrasString})\n`;
             } else {
               text += `• ${m}\n`;
@@ -611,7 +611,7 @@ export default function KitchenDashboard() {
     let text = `*Room ${roomNumber} - Mains & Beverages*\n`;
     
     const time = roomOrders[0]?.breakfastTime ? new Date(roomOrders[0].breakfastTime) : null;
-    let timeFormatted = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time not specified';
+    const timeFormatted = time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time not specified';
     text += `Time: ${timeFormatted}\n\n`;
 
     const sortedOrders = [...roomOrders].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -633,10 +633,10 @@ export default function KitchenDashboard() {
         guestText += `MAIN COURSE${hasSLMains ? ' (English)' : ''}\n`;
         englishMains.forEach(m => {
           if (m === "Bread Toast") {
-            let toastExtras = [];
+            const toastExtras = [];
             if (order.includesButter) toastExtras.push("Butter");
             if (order.includesJam) toastExtras.push("Jam");
-            let extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
+            const extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
             guestText += `• Toast (${order.toastSlices || 4} slices${extrasString})\n`;
           } else {
             guestText += `• ${m}\n`;
@@ -1084,7 +1084,7 @@ export default function KitchenDashboard() {
                                     </div>
                                     <ul className="space-y-1">
                                       {groupOrders.map((o, idx) => {
-                                        let items: string[] = [];
+                                        const items: string[] = [];
                                         if (o.mains) {
                                           o.mains.forEach(m => {
                                             if (SRI_LANKAN_MAINS.includes(m)) {

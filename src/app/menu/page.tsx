@@ -152,7 +152,7 @@ export default function GuestMenuPage() {
 
   useEffect(() => {
     const now = new Date();
-    let hours = now.getHours();
+    const hours = now.getHours();
     
     // Helper to get local date string YYYY-MM-DD
     const getLocalDateString = (d: Date) => {
@@ -360,7 +360,7 @@ export default function GuestMenuPage() {
       if (order.isPackedBreakfast) {
         text += `[PACKED BREAKFAST]\n`;
         if (order.packedSandwichChoice) text += `• ${order.packedSandwichChoice}\n`;
-        let extras = [];
+        const extras = [];
         if (order.packedIncludesBanana) extras.push("Banana (1)");
         if (order.packedIncludesYoghurt) extras.push("Yoghurt (1)");
         if (order.packedIncludesWater) extras.push("Bottle of Water (1)");
@@ -387,10 +387,10 @@ export default function GuestMenuPage() {
           text += `MAIN COURSE${hasSLMains ? ' (English)' : ''}\n`;
           englishMains.forEach(m => {
             if (m === "Bread Toast") {
-              let toastExtras = [];
+              const toastExtras = [];
               if (order.includesButter) toastExtras.push("Butter");
               if (order.includesJam) toastExtras.push("Jam");
-              let extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
+              const extrasString = toastExtras.length > 0 ? `, ${toastExtras.join(', ')}` : "";
               text += `• Toast (${order.toastSlices} slices${extrasString})\n`;
             } else {
               text += `• ${m}\n`;
@@ -614,7 +614,7 @@ export default function GuestMenuPage() {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-light text-[var(--stone-900)]">Order Details</h2>
-                <p className="text-[var(--stone-600)] mt-2">Let's set up your breakfast request.</p>
+                <p className="text-[var(--stone-600)] mt-2">Let&apos;s set up your breakfast request.</p>
               </div>
 
               <div className="space-y-6">
@@ -781,7 +781,7 @@ export default function GuestMenuPage() {
                                 <div onClick={() => updateCurrentGuest({ isKidFruitPlatter: !currentGuest.isKidFruitPlatter })} className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${currentGuest.isKidFruitPlatter ? 'bg-[var(--accent-gold)] border-[var(--accent-gold)]' : 'border-[var(--stone-200)] group-hover:border-[var(--accent-gold)]'}`}>
                                   {currentGuest.isKidFruitPlatter && <span className="text-white text-[10px]">✓</span>}
                                 </div>
-                                <span className="text-[var(--stone-800)] text-sm" onClick={() => updateCurrentGuest({ isKidFruitPlatter: !currentGuest.isKidFruitPlatter })}>Kid's Portion</span>
+                                <span className="text-[var(--stone-800)] text-sm" onClick={() => updateCurrentGuest({ isKidFruitPlatter: !currentGuest.isKidFruitPlatter })}>Kid&apos;s Portion</span>
                               </label>
                             </div>
                           )}
